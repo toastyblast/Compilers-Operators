@@ -32,6 +32,12 @@ class SimpleCommand {
 		}
 
 		void execute();
+
+	private:
+		void lsPerform();
+        void allsPerform();
+        int isRegularFile(const char *path);
+		void pwdPerform();
 };
 
 
