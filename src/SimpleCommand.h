@@ -38,6 +38,8 @@ class SimpleCommand {
         void allsPerform();
         int isRegularFile(const char *path);
 		void pwdPerform();
+	    void chdirPerform();
+        void execvpPerform();
 };
 
 

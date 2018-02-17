@@ -3,6 +3,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <cstring>
+#include <pwd.h>
 #include "SimpleCommand.h"
 
 using namespace std;
@@ -25,6 +26,12 @@ void SimpleCommand::execute() {
     else if (command == "pwd") {
         //The user wants to know what the current directory they're at is.
         pwdPerform();
+    }
+    else if (command == "cd") {
+        chdirPerform();
+    }
+    else if (command == "execvp") {
+        execvpPerform();
     }
     //More commands here...
     else {
@@ -113,4 +120,43 @@ int SimpleCommand::isRegularFile(const char *path) {
 void SimpleCommand::pwdPerform() {
     //FIXME?: Maybe forking has to be done for this one too?
     cout << "Current directory: " << ::get_current_dir_name() << endl;
+}
+
+void SimpleCommand::chdirPerform() {
+    const char *directory = nullptr;
+    if (!arguments.empty()){
+        //Set the path.
+        if(arguments.at(0)[0] == '~'){
+            //If the argument is "~", the user is returned to the home directory.
+            struct passwd *pw = getpwuid(getuid());
+            directory = pw->pw_dir;
+        } else {
+            string path = arguments.at(0);
+            directory = path.c_str();
+        }
+    } else {
+        //If no path is specified a.k.a only "cd" is written. The user is returned to the home directory.
+        struct passwd *pw = getpwuid(getuid());
+        directory = pw->pw_dir;
+    }
+
+    if (chdir(directory) == -1){
+        perror("cd ");
+    } else {
+        cout << "Current directory " << get_current_dir_name() <<endl;
+    }
+}
+
+void SimpleCommand::execvpPerform() {
+    //Put the arguments from the vector to the char array.
+    char* args[arguments.size()+1];
+    for (int i=0; i<arguments.size(); ++i) {
+        args[i] = (char *) arguments.at(i).c_str();
+    }
+    //Set the last argument to be a nullptr.(Required by the documentation.)
+        args[arguments.size()] = nullptr;
+    //Execute the program.
+    if(execvp(args[0], args)){
+        perror("exec ");
+    }
 }
