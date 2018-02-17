@@ -34,11 +34,13 @@ class SimpleCommand {
 		void execute();
 
 	private:
-		void lsPerform();
-        void allsPerform();
+		void lsPerform(const char *);
+        void allsPerform(const char *);
         int isRegularFile(const char *path);
+
 		void pwdPerform();
 	    void chdirPerform();
+
         void execvpPerform();
 };
 

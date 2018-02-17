@@ -14,13 +14,21 @@ void SimpleCommand::execute() {
     if (command == "ls") {
         //The command given is "ls". The user wants a list of all items in this directory.
         if (arguments.empty()) {
-            //No additional arguments were supplied by the user.
-            lsPerform();
+            //No additional arguments were supplied by the user, so return them the ls of the current directory.
+            lsPerform(get_current_dir_name());
         } else if (arguments[0] == "-al") {
-            //The user added the "-al" command to get a different output.
-            allsPerform();
+            //The user added the "-al" command to get a different form of output.
+            if (arguments.size() == 1) {
+                //This means the user wants the ls -al for the current directory they're in.
+                allsPerform(get_current_dir_name());
+            } else {
+                //This means the user also supplied a second argument, which should be the directory they want to see.
+                //TODO - Yoran: Allow users to give any directory name (like "Downloads" or "../CLionProjects") and if it can be found using the route they gave, show the ls -al of that.
+                allsPerform(arguments[1].c_str());
+            }
         } else {
-            //TODO - Yoran: Allow users to give any directory name (like "Downloads" or "CLionProjects") and show the ls of that.
+            //The user supplied a different string, which should be a directory name.
+            lsPerform(arguments[0].c_str());
         }
     }
     else if (command == "pwd") {
@@ -40,23 +48,26 @@ void SimpleCommand::execute() {
     }
 }
 
-void SimpleCommand::lsPerform() {
+void SimpleCommand::lsPerform(const char *requestDir) {
     //FIXME?: Maybe forking has to be done for this one too?
+    DIR *desiredDirectory;
     struct dirent **files;
-    string currentDir = get_current_dir_name();
+    string desiredDirName = requestDir;
     string filePath;
 
-    //For convenience sake, print the current directory for the user.
-    pwdPerform();
+    if (desiredDirName != get_current_dir_name()) {
+        //This means the user gave a specific directory to ls.
+        desiredDirectory = opendir(requestDir);
+    }
 
-    //Set up how many items there are in the current directory.
-    int count = ::scandir(get_current_dir_name(), &files, NULL, alphasort);
+    //Set up how many items there are in the given directory.
+    int count = ::scandir(requestDir, &files, NULL, alphasort);
 
     if (count > 0) {
         //If there are items in this directory.
         while (count--) {
             //For every item, get their file path.
-            filePath = currentDir + "/" + files[count]->d_name;
+            filePath = desiredDirName + "/" + files[count]->d_name;
 
             if (isRegularFile(filePath.c_str())) {
                 //If the item is a file, print it in such a way.
@@ -72,13 +83,14 @@ void SimpleCommand::lsPerform() {
     }
 
     cout << endl;
+    closedir(desiredDirectory);
 }
 
-void SimpleCommand::allsPerform() {
+void SimpleCommand::allsPerform(const char *requestDir) {
     //FIXME?: Maybe forking has to be done for this one too?
     struct dirent **files;
     struct stat fileStat;
-    string currentDir = get_current_dir_name();
+    string currentDir = requestDir;
     string filePath;
 
     //For convenience sake, print the current directory for the user.
@@ -95,7 +107,7 @@ void SimpleCommand::allsPerform() {
 
             stat (filePath.c_str(), &fileStat);
 
-            char buf[256];
+            char buf[512];
             strcpy(buf,ctime(&fileStat.st_ctim.tv_sec));
             buf[strlen(buf)-1]='\0';
 
@@ -118,7 +130,6 @@ int SimpleCommand::isRegularFile(const char *path) {
 }
 
 void SimpleCommand::pwdPerform() {
-    //FIXME?: Maybe forking has to be done for this one too?
     cout << "Current directory: " << ::get_current_dir_name() << endl;
 }
 
@@ -143,7 +154,7 @@ void SimpleCommand::chdirPerform() {
     if (chdir(directory) == -1){
         perror("cd ");
     } else {
-        cout << "Current directory " << get_current_dir_name() <<endl;
+        pwdPerform();
     }
 }
 
