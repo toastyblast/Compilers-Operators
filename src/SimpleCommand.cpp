@@ -160,7 +160,7 @@ void SimpleCommand::allsPerform(const char *requestDir) {
 
         //This number will show the amount of hard links from other directories to the current file. This includes
         // any currently open instances of said file.
-        printf("\t\t%d", fileStat.st_nlink);
+        printf("\t\t%d", static_cast<int>(fileStat.st_nlink));
 
         //Get the owner of this file. This is the account on the device that has ownership of the file.
         fileOwner = getpwuid(fileStat.st_uid);
@@ -199,13 +199,13 @@ void SimpleCommand::allsPerform(const char *requestDir) {
  * @return 1 if the path leads to a regular file, -1 if it leads to anything else (namely, a directory).
  */
 int SimpleCommand::isRegularFile(const char *path) {
-    struct stat path_stat;
+    struct stat pathStat;
 
     //Get the information of the file at the given path location.
-    stat(path, &path_stat);
+    stat(path, &pathStat);
 
     //Return if the file at the path given is a regular file (aka not a directory).
-    return S_ISREG(path_stat.st_mode);
+    return S_ISREG(pathStat.st_mode);
 }
 
 /**
