@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <cstring>
 #include <pwd.h>
+#include <grp.h>
 #include "SimpleCommand.h"
 
 using namespace std;
@@ -88,35 +89,70 @@ void SimpleCommand::lsPerform(const char *requestDir) {
 
 void SimpleCommand::allsPerform(const char *requestDir) {
     //FIXME?: Maybe forking has to be done for this one too?
-    struct dirent **files;
+    DIR *desiredDirectory;
+    struct dirent *files;
     struct stat fileStat;
-    string currentDir = requestDir;
+    struct passwd *fileOwner;
+    struct group *fileGroup;
+    string desiredDirName = requestDir;
     string filePath;
+    char buffer[512];
 
-    //For convenience sake, print the current directory for the user.
-    pwdPerform();
+    if (desiredDirName != get_current_dir_name()) {
+        //This means the user gave a specific directory to ls.
+        desiredDirectory = opendir(requestDir);
+    } else {
+        desiredDirectory = opendir(get_current_dir_name());
+    }
+
+    while ((files = readdir(desiredDirectory)) != NULL) {
+        sprintf(buffer, "%s/%s", requestDir, files->d_name);
+
+        stat(buffer, &fileStat);
+
+        //...
+
+        printf("\t%d ", fileStat.st_nlink);
+
+        fileOwner = getpwuid(fileStat.st_uid);
+        printf("\t%s ", fileOwner->pw_name);
+
+        fileGroup = getgrgid(fileStat.st_gid);
+        printf("\t%s ", fileGroup->gr_name);
+
+        printf("\t%*zd", 15, fileStat.st_size);
+
+        char dateBuf[256];
+        strcpy(dateBuf, ctime(&fileStat.st_mtim.tv_sec));
+        dateBuf[strlen(dateBuf)-1]='\0';
+        printf("\t%s", dateBuf);
+
+        printf("\t%s\n", files->d_name);
+    }
 
     //Set up how many items there are in the current directory.
-    int count = ::scandir(get_current_dir_name(), &files, NULL, alphasort);
+//    int count = ::scandir(requestDir, &files, NULL, alphasort);
+//
+//    if (count > 0) {
+//        //If there are items in this directory.
+//        while (count--) {
+//            //For every item, get their file path.
+//            filePath = desiredDirName + "/" + files[count]->d_name;
+//
+//            stat (filePath.c_str(), &fileStat);
+//
+//            char buf[512];
+//            strcpy(buf,ctime(&fileStat.st_ctim.tv_sec));
+//            buf[strlen(buf)-1]='\0';
+//
+//            cout << fileStat.st_size << " \t\t" << buf << " \t\t" << files[count]->d_name << endl;
+//        }
+//    } else {
+//        //The directory is empty or something else went wrong.
+//        perror("scandir error");
+//    }
 
-    if (count > 0) {
-        //If there are items in this directory.
-        while (count--) {
-            //For every item, get their file path.
-            filePath = currentDir + "/" + files[count]->d_name;
-
-            stat (filePath.c_str(), &fileStat);
-
-            char buf[512];
-            strcpy(buf,ctime(&fileStat.st_ctim.tv_sec));
-            buf[strlen(buf)-1]='\0';
-
-            cout << fileStat.st_size << " \t\t" << buf << " \t\t" << files[count]->d_name << endl;
-        }
-    } else {
-        //The directory is empty or something else went wrong.
-        perror("scandir error");
-    }
+    closedir(desiredDirectory);
 }
 
 int SimpleCommand::isRegularFile(const char *path) {
