@@ -49,6 +49,64 @@ void SimpleCommand::execute() {
     }
 }
 
+void SimpleCommand::lsPerform() {
+    char *args[arguments.size() + 3];
+    pid_t processID = fork();
+    const string ls = "/bin/ls";
+
+    if (processID < 0) {
+        perror("Forking failed ");
+    } else if (processID == 0) {
+        //The child process will end up here.
+        const char *requestedDirectory = nullptr;
+
+        args[0] = (char *) ls.c_str();
+
+        for (int i = 0; i < arguments.size(); i++) {
+            string argument = arguments.at(i);
+
+            if (argument.find('-') != string::npos) {
+                //Check that the arguments always start with a '-'
+                args[i + 1] = (char *) argument.c_str();
+                cout << "INTERMEDIATE ARGUMENT READ: " << argument << endl;
+            } else if (i == arguments.size() - 1) {
+                //Check if the last arguments given does not start with '-', in which case it's the path the user wants.
+                requestedDirectory = argument.c_str();
+                args[arguments.size()] = (char *) requestedDirectory;
+                args[arguments.size() + 1] = nullptr;
+                cout << "LAST ARGUMENT, SHOULD BE THE GIVEN PATH, IF ANY: " << argument << endl;
+            } else {
+                perror("Wrong ls arguments ");
+            }
+        }
+
+        if (requestedDirectory == nullptr) {
+            args[arguments.size() + 1] = get_current_dir_name();
+            args[arguments.size() + 2] = nullptr;
+
+            cout << "NO PATH SPECIFIED, INSTEAD USING CURRENT: " << get_current_dir_name() << endl;
+        }
+
+        int count = 0;
+        for(char *text : args) {
+            cout << "ARGUMENT #" << count << ": " << text << endl;
+            count++;
+        }
+
+        //TODO: THIS IS WEIRD: TRY "ls -al" OR "ls .." OR "ls" AND YOU'LL SEE THIS LINE IS NEVER PRINTED!!!
+        //FIXME: The issue is that the last argument for some reason is put into every array place, even though the intermediate prints show the other arguments prior to it are found. They are all overridden with the last item for some reason, though...
+        cout << "RESULT: " << args[sizeof(args)] << endl;
+
+        if(execvp(args[0], args)) {
+            perror("ls ");
+        }
+
+        exit(0);
+    }
+    //Only the parent will reach this code.
+    wait(nullptr);
+}
+
 /**
  * Method that prints all the files within the directory on the given path in a simple width-list. Also shows if the
  *  item is a file or another directory.
@@ -268,60 +326,6 @@ void SimpleCommand::execvpPerform() {
     //Only the parent can proceed with the code below.
 
     //Catch the child process. Otherwise it will become a zombie process(defunct).
-    wait(nullptr);
-}
-
-void SimpleCommand::lsPerform() {
-    char *args[arguments.size() + 3];
-    pid_t processID = fork();
-    const string ls = "/bin/ls";
-
-    if (processID < 0) {
-        perror("Forking failed ");
-    } else if (processID == 0) {
-        //The child process will end up here.
-        const char *requestedDirectory = nullptr;
-
-        args[0] = (char *) ls.c_str();
-
-        for (int i = 0; i < arguments.size(); i++) {
-            string argument = arguments.at(i);
-
-            //Start from 1 as we already added "ls" to args[0].
-            if (argument.find('-') != string::npos) {
-                //Check that the arguments always start with a '-'
-                args[i + 1] = (char *) argument.c_str();
-                cout << "INTERMEDIATE ARGUMENTS, CURRENT ONE BEING READ: " << argument << endl;
-            } else if (i == arguments.size() - 1) {
-                //Check if the last arguments given does not start with '-', in which case it's the path the user wants.
-                requestedDirectory = argument.c_str();
-                args[i + 1] = (char *) requestedDirectory;
-                cout << "LAST ARGUMENT, SHOULD BE THE GIVEN PATH, IF ANY: " << argument << endl;
-            } else {
-                perror("Wrong ls arguments ");
-            }
-        }
-
-        if (requestedDirectory == nullptr) {
-            args[arguments.size() + 1] = get_current_dir_name();
-            cout << "NO PATH SPECIFIED, INSTEAD USING CURRENT: " << get_current_dir_name() << endl;
-        }
-
-        args[arguments.size() + 2] = nullptr;
-
-        int count = 0;
-        for(char *text : args) {
-            cout << "ARGUMENT #" << count << ": " << text << endl;
-            count++;
-        }
-
-        if(execvp(args[0], args)) {
-            perror("ls ");
-        }
-
-        exit(0);
-    }
-    //Only the parent will reach this code.
     wait(nullptr);
 }
 
