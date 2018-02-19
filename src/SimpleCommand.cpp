@@ -13,22 +13,24 @@ using namespace std;
 
 void SimpleCommand::execute() {
     if (command == "ls") {
-        //The command given is "ls". The user wants a list of all items in this directory.
+        lsPerform();
+    } else if (command == "lso") {
+        //The command given is "lso". The user wants a list of all items in this directory. OLD, LEGACY VERSION, MADE BY HAND
         if (arguments.empty()) {
             //No additional arguments were supplied by the user, so return them the ls of the current directory.
-            lsPerform(get_current_dir_name());
+            oldlsPerform(get_current_dir_name());
         } else if (arguments[0] == "-al") {
             //The user added the "-al" command to get a different form of output.
             if (arguments.size() == 1) {
                 //This means the user wants the ls -al for the current directory they're in.
-                allsPerform(get_current_dir_name());
+                oldallsPerform(get_current_dir_name());
             } else {
                 //This means the user also supplied a second argument, which should be the directory they want to see.
-                allsPerform(arguments[1].c_str());
+                oldallsPerform(arguments[1].c_str());
             }
         } else {
             //The user supplied a different string, which should be a directory name.
-            lsPerform(arguments[0].c_str());
+            oldlsPerform(arguments[0].c_str());
         }
     } else if (command == "pwd") {
         //The user wants to know what the current directory they're at is.
@@ -53,8 +55,7 @@ void SimpleCommand::execute() {
  *
  * @param const char *requestDir is the path the user has given us, that we should return the contents of.
  */
-void SimpleCommand::lsPerform(const char *requestDir) {
-    //FIXME?: Maybe forking has to be done for this one too?
+void SimpleCommand::oldlsPerform(const char *requestDir) {
     //dirent ** because scandir() requires this, as it expects the reference of a pointer for one of its input variables.
     struct dirent **files;
     string desiredDirName = requestDir;
@@ -91,8 +92,7 @@ void SimpleCommand::lsPerform(const char *requestDir) {
  *
  * @param const char *requestDir is the path the user has given us, that we should return the contents of.
  */
-void SimpleCommand::allsPerform(const char *requestDir) {
-    //FIXME?: Maybe forking has to be done for this one too?
+void SimpleCommand::oldallsPerform(const char *requestDir) {
     //Prepare a directory variable to store the directory to read in.
     DIR *desiredDirectory;
     //Keep a dirent * to access the files within the directory one by one.
@@ -249,7 +249,7 @@ void SimpleCommand::execvpPerform() {
 
     if(pid < 0){
         //Here we know that there was an error.
-        perror("Fork failed");
+        perror("Fork failed ");
     } else if (pid == 0){
         //Here we know that this is the child process.
         //Put the arguments from the vector to the char array.
@@ -268,6 +268,60 @@ void SimpleCommand::execvpPerform() {
     //Only the parent can proceed with the code below.
 
     //Catch the child process. Otherwise it will become a zombie process(defunct).
+    wait(nullptr);
+}
+
+void SimpleCommand::lsPerform() {
+    char *args[arguments.size() + 3];
+    pid_t processID = fork();
+    const string ls = "/bin/ls";
+
+    if (processID < 0) {
+        perror("Forking failed ");
+    } else if (processID == 0) {
+        //The child process will end up here.
+        const char *requestedDirectory = nullptr;
+
+        args[0] = (char *) ls.c_str();
+
+        for (int i = 0; i < arguments.size(); i++) {
+            string argument = arguments.at(i);
+
+            //Start from 1 as we already added "ls" to args[0].
+            if (argument.find('-') != string::npos) {
+                //Check that the arguments always start with a '-'
+                args[i + 1] = (char *) argument.c_str();
+                cout << "INTERMEDIATE ARGUMENTS, CURRENT ONE BEING READ: " << argument << endl;
+            } else if (i == arguments.size() - 1) {
+                //Check if the last arguments given does not start with '-', in which case it's the path the user wants.
+                requestedDirectory = argument.c_str();
+                args[i + 1] = (char *) requestedDirectory;
+                cout << "LAST ARGUMENT, SHOULD BE THE GIVEN PATH, IF ANY: " << argument << endl;
+            } else {
+                perror("Wrong ls arguments ");
+            }
+        }
+
+        if (requestedDirectory == nullptr) {
+            args[arguments.size() + 1] = get_current_dir_name();
+            cout << "NO PATH SPECIFIED, INSTEAD USING CURRENT: " << get_current_dir_name() << endl;
+        }
+
+        args[arguments.size() + 2] = nullptr;
+
+        int count = 0;
+        for(char *text : args) {
+            cout << "ARGUMENT #" << count << ": " << text << endl;
+            count++;
+        }
+
+        if(execvp(args[0], args)) {
+            perror("ls ");
+        }
+
+        exit(0);
+    }
+    //Only the parent will reach this code.
     wait(nullptr);
 }
 

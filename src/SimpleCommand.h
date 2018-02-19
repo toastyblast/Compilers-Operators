@@ -34,8 +34,9 @@ class SimpleCommand {
 		void execute();
 
 	private:
-		void lsPerform(const char *);
-        void allsPerform(const char *);
+        void lsPerform();
+		void oldlsPerform(const char *);
+        void oldallsPerform(const char *);
         int isRegularFile(const char *path);
 
 		void pwdPerform();
