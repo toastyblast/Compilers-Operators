@@ -2,9 +2,11 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <cstring>
 #include <pwd.h>
 #include <grp.h>
+#include <fstream>
 #include "SimpleCommand.h"
 
 using namespace std;
@@ -33,7 +35,9 @@ void SimpleCommand::execute() {
         pwdPerform();
     } else if (command == "cd") {
         chdirPerform();
-    } else if (command == "execvp") {
+    } else if (command == "redirect") {
+        ioredirectPerfrom();
+    } else if (command == "cmd"){
         execvpPerform();
     }
         //More commands here...
@@ -224,8 +228,7 @@ void SimpleCommand::chdirPerform() {
             struct passwd *pw = getpwuid(getuid());
             directory = pw->pw_dir;
         } else {
-            string path = arguments.at(0);
-            directory = path.c_str();
+            directory = arguments.data()->c_str();
         }
     } else {
         //If no path is specified a.k.a only "cd" is written. The user is returned to the home directory.
@@ -241,15 +244,69 @@ void SimpleCommand::chdirPerform() {
 }
 
 void SimpleCommand::execvpPerform() {
-    //Put the arguments from the vector to the char array.
-    char *args[arguments.size() + 1];
-    for (int i = 0; i < arguments.size(); ++i) {
-        args[i] = (char *) arguments.at(i).c_str();
+    //Create the child process;
+    pid_t pid = fork();
+
+    if(pid < 0){
+        //Here we know that there was an error.
+        perror("Fork failed");
+    } else if (pid == 0){
+        //Here we know that this is the child process.
+        //Put the arguments from the vector to the char array.
+        char* args[arguments.size()+1];
+        for (int i=0; i<arguments.size(); ++i) {
+            args[i] = (char *) arguments.at(i).c_str();
+        }
+        //Set the last argument to be a nullptr.(Required by the documentation.)
+        args[arguments.size()] = nullptr;
+        //Execute the program.
+        if(execvp(args[0], args)){
+            perror("exec ");
+        }
+        exit(0);
     }
-    //Set the last argument to be a nullptr.(Required by the documentation.)
-    args[arguments.size()] = nullptr;
-    //Execute the program.
-    if (execvp(args[0], args)) {
-        perror("exec ");
+    //Only the parent can proceed with the code below.
+
+    //Catch the child process. Otherwise it will become a zombie process(defunct).
+    wait(nullptr);
+}
+
+void SimpleCommand::ioredirectPerfrom() {
+    //Work in progress.
+    pid_t pid = fork();
+
+    if(pid == 0){
+        string cmd = "cat";
+        string data;
+        FILE * stream;
+        const int max_buffer = 256;
+        char buffer[max_buffer];
+
+        stream = popen(cmd.c_str(), "r");
+        if (stream) {
+            while (!feof(stream)) {
+                if (fgets(buffer, max_buffer, stream) != nullptr){
+                    data.append(buffer);
+                }
+            }
+            pclose(stream);
+        }
+
+        std::fstream fs;
+        fs.open ("copy", std::fstream::in | std::fstream::out | std::fstream::app);
+        fs << data;
+        fs.close();
+        exit(0);
     }
+    wait(0);
+//        int pfd;
+//        char * filename = const_cast<char *>("copy");
+//        if ((pfd = open(filename, O_WRONLY | O_CREAT | O_TRUNC,
+//                        S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1)
+//        {
+//            perror("Cannot open output file\n"); exit(1);
+//        }
+//
+//        dup2(pfd, 1);
+//        printf("hi");
 }

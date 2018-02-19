@@ -42,6 +42,7 @@ class SimpleCommand {
 	    void chdirPerform();
 
         void execvpPerform();
+	    void ioredirectPerfrom();
 };
 
 
