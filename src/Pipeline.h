@@ -29,6 +29,8 @@ class Pipeline {
 
 		void addCommand( SimpleCommand *cmd ) { commands.push_back(cmd); }
 
+		int buildPipe(int in, int out, SimpleCommand *command);
+
 		void execute();
 };
 

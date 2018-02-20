@@ -11,9 +11,10 @@
 
 using namespace std;
 
-void SimpleCommand::execute() {
+int SimpleCommand::execute() {
     if (command == "ls") {
         lsPerform();
+        return 0;
     } else if (command == "lso") {
         //The command given is "lso". The user wants a list of all items in this directory. OLD, LEGACY VERSION, MADE BY HAND
         if (arguments.empty()) {
@@ -32,21 +33,33 @@ void SimpleCommand::execute() {
             //The user supplied a different string, which should be a directory name.
             oldlsPerform(arguments[0].c_str());
         }
+
+        return 0;
     } else if (command == "pwd") {
         //The user wants to know what the current directory they're at is.
         pwdPerform();
+        return 0;
     } else if (command == "cd") {
         chdirPerform();
+        return 0;
     } else if (command == "redirect") {
         ioredirectPerfrom();
-    } else if (command == "cmd"){
+        return 0;
+    } else if (command == "cmd") {
         execvpPerform();
+        return 0;
+    } else if (command == "more") {
+        execl("/bin/more", "more", 0);
+        return 0;
     }
         //More commands here...
     else {
         //FIXME: Executables might not be recognisable and should just be run?
         cerr << "ERROR: Given command \"" << command << "\" or additional arguments not recognised.";
     }
+
+    //On error, for the pipeline, we have to return -1.
+    return -1;
 }
 
 void SimpleCommand::lsPerform() {

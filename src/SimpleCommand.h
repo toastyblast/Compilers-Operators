@@ -31,7 +31,7 @@ class SimpleCommand {
 			redirects.emplace_back(fd, t, s);
 		}
 
-		void execute();
+		int execute();
 
 	private:
         void lsPerform();
