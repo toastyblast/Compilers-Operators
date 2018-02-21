@@ -11,116 +11,183 @@
 
 using namespace std;
 
-int SimpleCommand::execute() {
-    if (command == "ls") {
-        lsPerform();
-        return 0;
-    } else if (command == "lso") {
+void SimpleCommand::execute() {
+    if (command == "lso") {
+        //OLD, HANDMADE LS CODE LEFT HERE FOR PAUL DE GROOT, AS HE REQUESTED.
         //The command given is "lso". The user wants a list of all items in this directory. OLD, LEGACY VERSION, MADE BY HAND
-        if (arguments.empty()) {
-            //No additional arguments were supplied by the user, so return them the ls of the current directory.
-            oldlsPerform(get_current_dir_name());
-        } else if (arguments[0] == "-al") {
-            //The user added the "-al" command to get a different form of output.
-            if (arguments.size() == 1) {
-                //This means the user wants the ls -al for the current directory they're in.
-                oldallsPerform(get_current_dir_name());
-            } else {
-                //This means the user also supplied a second argument, which should be the directory they want to see.
-                oldallsPerform(arguments[1].c_str());
-            }
-        } else {
-            //The user supplied a different string, which should be a directory name.
-            oldlsPerform(arguments[0].c_str());
-        }
-
-        return 0;
+        dolsoChecks();
     } else if (command == "pwd") {
+        //THIS ELSE-IF CAN STAY, ACCORDING TO ANTHONY.
         //The user wants to know what the current directory they're at is.
         pwdPerform();
-        return 0;
     } else if (command == "cd") {
+        //THIS ELSE-IF CAN STAY, ACCORDING TO ANTHONY.
         chdirPerform();
-        return 0;
     } else if (command == "redirect") {
+        //THIS ELSE-IF SHOULD NOT BE NEEDED, ACCORDING TO ANTHONY. CAN JUST BE HANDLED BY THE ELSE.
         ioredirectPerfrom();
-        return 0;
-    } else if (command == "cmd") {
-        execvpPerform();
-        return 0;
-    } else if (command == "more") {
-        execl("/bin/more", "more", 0);
-        return 0;
     }
-        //More commands here...
+//    else if (command == "cmd") {
+//        //FIXME: THIS (and the method it calls) CAN BE REMOVED AS THE ELSE NOW DOES THIS PERFECTLY.
+//        //THIS ELSE-IF SHOULD NOT BE NEEDED, ACCORDING TO ANTHONY. CAN JUST BE HANDLED BY THE ELSE.
+//        execvpPerform();
+//    }
     else {
-        //FIXME: Executables might not be recognisable and should just be run?
-        cerr << "ERROR: Given command \"" << command << "\" or additional arguments not recognised.";
-    }
+        //Every other command that can just be performed with execvp, without further editing.'
+        pid_t pid = fork();
 
-    //On error, for the pipeline, we have to return -1.
-    return -1;
-}
+        if (pid < 0) {
+            //Something went wrong while forking.
+            perror("Forking in simpleCommand failed ");
+        } else if (pid == 0) {
+            //The newly created child process goes here and performs the given command.
+            //Make an array for execvp with space for the program name and nullptr at the end.
+            const char **givenArgs = new const char* [arguments.size() + 2];
+            //Add the command itself to the start of the arguments array.
+            givenArgs[0] = command.c_str();
 
-void SimpleCommand::lsPerform() {
-    char *args[arguments.size() + 3];
-    pid_t processID = fork();
-    const string ls = "/bin/ls";
-
-    if (processID < 0) {
-        perror("Forking failed ");
-    } else if (processID == 0) {
-        //The child process will end up here.
-        const char *requestedDirectory = nullptr;
-
-        args[0] = (char *) ls.c_str();
-
-        for (int i = 0; i < arguments.size(); i++) {
-            string argument = arguments.at(i);
-
-            if (argument.find('-') != string::npos) {
-                //Check that the arguments always start with a '-'
-                args[i + 1] = (char *) argument.c_str();
-                cout << "INTERMEDIATE ARGUMENT READ: " << argument << endl;
-            } else if (i == arguments.size() - 1) {
-                //Check if the last arguments given does not start with '-', in which case it's the path the user wants.
-                requestedDirectory = argument.c_str();
-                args[arguments.size()] = (char *) requestedDirectory;
-                args[arguments.size() + 1] = nullptr;
-                cout << "LAST ARGUMENT, SHOULD BE THE GIVEN PATH, IF ANY: " << argument << endl;
-            } else {
-                perror("Wrong ls arguments ");
+            for (int i = 0; i < arguments.size(); ++i) {
+                //Now add every argument one after another to the arguments array, as cstrings.
+                givenArgs[i + 1] = arguments[i].c_str();
             }
+
+            //Now finally add a nullptr to the end of the arguments array, to denote the end of the arguments.
+            givenArgs[arguments.size() + 1] = nullptr;
+
+            //Then execvp() the command given, along with the given arguments.
+            execvp(givenArgs[0], (char **) givenArgs);
         }
-
-        if (requestedDirectory == nullptr) {
-            args[arguments.size() + 1] = get_current_dir_name();
-            args[arguments.size() + 2] = nullptr;
-
-            cout << "NO PATH SPECIFIED, INSTEAD USING CURRENT: " << get_current_dir_name() << endl;
-        }
-
-        int count = 0;
-        for(char *text : args) {
-            cout << "ARGUMENT #" << count << ": " << text << endl;
-            count++;
-        }
-
-        //TODO: THIS IS WEIRD: TRY "ls -al" OR "ls .." OR "ls" AND YOU'LL SEE THIS LINE IS NEVER PRINTED!!!
-        //FIXME: The issue is that the last argument for some reason is put into every array place, even though the intermediate prints show the other arguments prior to it are found. They are all overridden with the last item for some reason, though...
-        cout << "RESULT: " << args[sizeof(args)] << endl;
-
-        if(execvp(args[0], args)) {
-            perror("ls ");
-        }
-
-        exit(0);
+        //Only the parent process will end up there, which will wait until the child is done.
+        wait(nullptr);
     }
-    //Only the parent will reach this code.
-    wait(nullptr);
 }
 
 /**
+ * Method that returns the current working directory that the console is located in.
+ */
+void SimpleCommand::pwdPerform() {
+    cout << "Current directory: " << ::get_current_dir_name() << endl;
+}
+
+void SimpleCommand::chdirPerform() {
+    const char *directory = nullptr;
+    if (!arguments.empty()) {
+        //Set the path.
+        if (arguments.at(0)[0] == '~') {
+            //If the argument is "~", the user is returned to the home directory.
+            struct passwd *pw = getpwuid(getuid());
+            directory = pw->pw_dir;
+        } else {
+            directory = arguments.data()->c_str();
+        }
+    } else {
+        //If no path is specified a.k.a only "cd" is written. The user is returned to the home directory.
+        struct passwd *pw = getpwuid(getuid());
+        directory = pw->pw_dir;
+    }
+
+    if (chdir(directory) == -1) {
+        perror("cd ");
+    } else {
+        pwdPerform();
+    }
+}
+
+void SimpleCommand::execvpPerform() {
+    //Create the child process;
+    pid_t pid = fork();
+
+    if(pid < 0){
+        //Here we know that there was an error.
+        perror("Fork failed ");
+    } else if (pid == 0){
+        //Here we know that this is the child process.
+        //Put the arguments from the vector to the char array.
+        char* args[arguments.size()+1];
+        for (int i=0; i<arguments.size(); ++i) {
+            args[i] = (char *) arguments.at(i).c_str();
+        }
+        //Set the last argument to be a nullptr.(Required by the documentation.)
+        args[arguments.size()] = nullptr;
+        //Execute the program.
+        if(execvp(args[0], args)){
+            perror("exec ");
+        }
+        exit(0);
+    }
+    //Only the parent can proceed with the code below.
+
+    //Catch the child process. Otherwise it will become a zombie process(defunct).
+    wait(nullptr);
+}
+
+void SimpleCommand::ioredirectPerfrom() {
+    //Work in progress.
+    pid_t pid = fork();
+
+    if(pid == 0){
+        string cmd = "cat";
+        string data;
+        FILE * stream;
+        const int max_buffer = 256;
+        char buffer[max_buffer];
+
+        stream = popen(cmd.c_str(), "r");
+        if (stream) {
+            while (!feof(stream)) {
+                if (fgets(buffer, max_buffer, stream) != nullptr){
+                    data.append(buffer);
+                }
+            }
+            pclose(stream);
+        }
+
+        std::fstream fs;
+        fs.open ("copy", std::fstream::in | std::fstream::out | std::fstream::app);
+        fs << data;
+        fs.close();
+        exit(0);
+    }
+    wait(0);
+//        int pfd;
+//        char * filename = const_cast<char *>("copy");
+//        if ((pfd = open(filename, O_WRONLY | O_CREAT | O_TRUNC,
+//                        S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1)
+//        {
+//            perror("Cannot open output file\n"); exit(1);
+//        }
+//
+//        dup2(pfd, 1);
+//        printf("hi");
+}
+
+/* --- LEGACY CODE ------------------------------------------------------------------------------------------------- */
+
+/**
+ * Helper method that performs the checks on what method needs to be started for the original, handmade
+ * 'ls (-al) (<path>)' command. Left in for Paul de Groot to see, as he requested.
+ */
+void SimpleCommand::dolsoChecks() {
+    if (arguments.empty()) {
+        //No additional arguments were supplied by the user, so return them the ls of the current directory.
+        oldlsPerform(get_current_dir_name());
+    } else if (arguments[0] == "-al") {
+        //The user added the "-al" command to get a different form of output.
+        if (arguments.size() == 1) {
+            //This means the user wants the ls -al for the current directory they're in.
+            oldallsPerform(get_current_dir_name());
+        } else {
+            //This means the user also supplied a second argument, which should be the directory they want to see.
+            oldallsPerform(arguments[1].c_str());
+        }
+    } else {
+        //The user supplied a different string, which should be a directory name.
+        oldlsPerform(arguments[0].c_str());
+    }
+}
+
+/**
+ * LEGACY CODE LEFT IN ON PAUL DE GROOT'S REQUEST.
  * Method that prints all the files within the directory on the given path in a simple width-list. Also shows if the
  *  item is a file or another directory.
  *
@@ -158,6 +225,7 @@ void SimpleCommand::oldlsPerform(const char *requestDir) {
 }
 
 /**
+ * LEGACY CODE LEFT IN ON PAUL DE GROOT'S REQUEST.
  * Method that prints everything in the directory on the given path like "ls -al" would in Linux' command prompt.
  *  It is deliberately designed to look exactly like said OS' output.
  *
@@ -281,103 +349,4 @@ int SimpleCommand::isRegularFile(const char *path) {
 
     //Return if the file at the path given is a regular file (aka not a directory).
     return S_ISREG(pathStat.st_mode);
-}
-
-/**
- * Method that returns the current working directory that the console is located in.
- */
-void SimpleCommand::pwdPerform() {
-    cout << "Current directory: " << ::get_current_dir_name() << endl;
-}
-
-void SimpleCommand::chdirPerform() {
-    const char *directory = nullptr;
-    if (!arguments.empty()) {
-        //Set the path.
-        if (arguments.at(0)[0] == '~') {
-            //If the argument is "~", the user is returned to the home directory.
-            struct passwd *pw = getpwuid(getuid());
-            directory = pw->pw_dir;
-        } else {
-            directory = arguments.data()->c_str();
-        }
-    } else {
-        //If no path is specified a.k.a only "cd" is written. The user is returned to the home directory.
-        struct passwd *pw = getpwuid(getuid());
-        directory = pw->pw_dir;
-    }
-
-    if (chdir(directory) == -1) {
-        perror("cd ");
-    } else {
-        pwdPerform();
-    }
-}
-
-void SimpleCommand::execvpPerform() {
-    //Create the child process;
-    pid_t pid = fork();
-
-    if(pid < 0){
-        //Here we know that there was an error.
-        perror("Fork failed ");
-    } else if (pid == 0){
-        //Here we know that this is the child process.
-        //Put the arguments from the vector to the char array.
-        char* args[arguments.size()+1];
-        for (int i=0; i<arguments.size(); ++i) {
-            args[i] = (char *) arguments.at(i).c_str();
-        }
-        //Set the last argument to be a nullptr.(Required by the documentation.)
-        args[arguments.size()] = nullptr;
-        //Execute the program.
-        if(execvp(args[0], args)){
-            perror("exec ");
-        }
-        exit(0);
-    }
-    //Only the parent can proceed with the code below.
-
-    //Catch the child process. Otherwise it will become a zombie process(defunct).
-    wait(nullptr);
-}
-
-void SimpleCommand::ioredirectPerfrom() {
-    //Work in progress.
-    pid_t pid = fork();
-
-    if(pid == 0){
-        string cmd = "cat";
-        string data;
-        FILE * stream;
-        const int max_buffer = 256;
-        char buffer[max_buffer];
-
-        stream = popen(cmd.c_str(), "r");
-        if (stream) {
-            while (!feof(stream)) {
-                if (fgets(buffer, max_buffer, stream) != nullptr){
-                    data.append(buffer);
-                }
-            }
-            pclose(stream);
-        }
-
-        std::fstream fs;
-        fs.open ("copy", std::fstream::in | std::fstream::out | std::fstream::app);
-        fs << data;
-        fs.close();
-        exit(0);
-    }
-    wait(0);
-//        int pfd;
-//        char * filename = const_cast<char *>("copy");
-//        if ((pfd = open(filename, O_WRONLY | O_CREAT | O_TRUNC,
-//                        S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1)
-//        {
-//            perror("Cannot open output file\n"); exit(1);
-//        }
-//
-//        dup2(pfd, 1);
-//        printf("hi");
 }

@@ -31,19 +31,21 @@ class SimpleCommand {
 			redirects.emplace_back(fd, t, s);
 		}
 
-		int execute();
+		void execute();
 
 	private:
-        void lsPerform();
-		void oldlsPerform(const char *);
-        void oldallsPerform(const char *);
-        int isRegularFile(const char *path);
-
 		void pwdPerform();
 	    void chdirPerform();
 
         void execvpPerform();
 	    void ioredirectPerfrom();
+
+		/* --- LEGACY CODE ----------------------------------------------------------------------------------------- */
+		//Left in upon Paul de Groot's request.
+		void dolsoChecks();
+		void oldlsPerform(const char *);
+		void oldallsPerform(const char *);
+		int isRegularFile(const char *path);
 };
 
 
