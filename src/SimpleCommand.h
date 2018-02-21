@@ -38,6 +38,7 @@ class SimpleCommand {
 	    void chdirPerform();
 
 	    void ioredirectPerfrom();
+	    void cmdPerform();
 
 		/* --- LEGACY CODE ----------------------------------------------------------------------------------------- */
 		//Left in upon Paul de Groot's request.
