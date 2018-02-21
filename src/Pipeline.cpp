@@ -28,13 +28,13 @@ void Pipeline::execute() {
 //        in = 0;
 //
 //        for (SimpleCommand *command : commands) {
-//            pipe (fd);
+//            pipe(fd);
 //
-//            buildPipe(in, fd [1], command);
+//            buildPipe(in, fd[1], command);
 //
-//            close (fd [1]);
+//            close(fd[1]);
 //
-//            in = fd [0];
+//            in = fd[0];
 //        }
 //
 //        if (in != 0) {
@@ -44,7 +44,7 @@ void Pipeline::execute() {
 //        commands.at(commands.size() - 1)->execute();
 //    }
 //
-//    wait(nullptr);
+//    waitpid(parentID, NULL, 0);
 
     //Original code made by teachers:
     for (SimpleCommand *cmd : commands) {
@@ -59,13 +59,13 @@ int Pipeline::buildPipe(int in, int out, SimpleCommand *command) {
 
     if ((pid = fork ()) == 0) {
         if (in != 0) {
-            dup2 (in, 0);
-            close (in);
+            dup2(in, 0);
+            close(in);
         }
 
         if (out != 1) {
-            dup2 (out, 1);
-            close (out);
+            dup2(out, 1);
+            close(out);
         }
 
         command->execute();
