@@ -75,17 +75,14 @@ void SimpleCommand::ioredirectPerfrom() {
             //Set the appropriate flags and stream to be closed depending on the type of "redirection".
             switch (redirects.at(a).getType()) {
                 case IORedirect::OUTPUT: {
-                    int fd;
+                    int fd = open((char *) redirects.at(a).getNewFile().c_str(),
+                              O_RDWR | O_TRUNC | O_CREAT, getuid());
                     if (redirects.at(a).getOldFileDescriptor() == 2 ){
-                        fd = open((char *) redirects.at(a).getNewFile().c_str(),
-                                      O_RDWR | O_APPEND | O_CREAT/*, getuid()*/);
                         if (fcntl(2, F_GETFD) != -1) {
                             close(2);
                             dup(fd);
                         }
                     } else {
-                        fd = open((char *) redirects.at(a).getNewFile().c_str(),
-                                      O_RDWR | O_TRUNC | O_CREAT, getuid());
                         if (fcntl(1, F_GETFD) != -1) {
                             close(1);
                             dup(fd);
@@ -97,9 +94,16 @@ void SimpleCommand::ioredirectPerfrom() {
                 case IORedirect::APPEND: {
                     int fd = open((char *) redirects.at(a).getNewFile().c_str(),
                                   O_RDWR | O_APPEND | O_CREAT, getuid());
-                    if (fcntl(1, F_GETFD) != -1) {
-                        close(1);
-                        dup(fd);
+                    if (redirects.at(a).getOldFileDescriptor() == 2 ){
+                        if (fcntl(2, F_GETFD) != -1) {
+                            close(2);
+                            dup(fd);
+                        }
+                    } else {
+                        if (fcntl(1, F_GETFD) != -1) {
+                            close(1);
+                            dup(fd);
+                        }
                     }
                     streams.push_back(fd);
                     break;
@@ -119,23 +123,7 @@ void SimpleCommand::ioredirectPerfrom() {
                 }
             }
         }
-        //Copy the arguments to a char array.
-        char *args[arguments.size() + 2];
-        args[0] = (char *) command.c_str();
-        for (int i = 1; i < arguments.size(); ++i) {
-            args[i] = (char *) arguments[i].c_str();
-        }
-        //Add nullptr to indicate the end of the command.
-        args[arguments.size() + 1] = nullptr;
-        //Execute the command.
-        if (execvp(args[0], args)) {
-            perror("exec ");
-        }
-        //Close the file.
-        for (int k = 0; k < streams.size(); ++k) {
-            close(streams[k]);
-        }
-
+        cmdPerform();
         exit(0);
     }
     wait(nullptr);
