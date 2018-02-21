@@ -165,6 +165,7 @@ void SimpleCommand::cmdPerform() {
 
         //Then execvp() the command given, along with the given arguments.
         execvp(givenArgs[0], (char **) givenArgs);
+        delete(givenArgs);
         exit(0);
     }
     //Only the parent process will end up there, which will wait until the child is done.
