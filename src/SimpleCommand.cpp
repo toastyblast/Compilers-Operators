@@ -94,6 +94,7 @@ void SimpleCommand::chdirPerform() {
 }
 
 void SimpleCommand::execvpPerform() {
+    //FIXME: THIS CAN BE REMOVED SINCE THE ADDITION OF THE else IN execute().
     //Create the child process;
     pid_t pid = fork();
 
