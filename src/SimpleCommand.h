@@ -37,7 +37,6 @@ class SimpleCommand {
 		void pwdPerform();
 	    void chdirPerform();
 
-        void execvpPerform();
 	    void ioredirectPerfrom();
 
 		/* --- LEGACY CODE ----------------------------------------------------------------------------------------- */

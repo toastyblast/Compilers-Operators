@@ -26,13 +26,7 @@ void SimpleCommand::execute() {
     } else if (command == "redirect") {
         //THIS ELSE-IF SHOULD NOT BE NEEDED, ACCORDING TO ANTHONY. CAN JUST BE HANDLED BY THE ELSE.
         ioredirectPerfrom();
-    }
-//    else if (command == "cmd") {
-//        //FIXME: THIS (and the method it calls) CAN BE REMOVED AS THE ELSE NOW DOES THIS PERFECTLY.
-//        //THIS ELSE-IF SHOULD NOT BE NEEDED, ACCORDING TO ANTHONY. CAN JUST BE HANDLED BY THE ELSE.
-//        execvpPerform();
-//    }
-    else {
+    } else {
         //Every other command that can just be performed with execvp, without further editing.'
         pid_t pid = fork();
 
@@ -91,35 +85,6 @@ void SimpleCommand::chdirPerform() {
     } else {
         pwdPerform();
     }
-}
-
-void SimpleCommand::execvpPerform() {
-    //FIXME: THIS CAN BE REMOVED SINCE THE ADDITION OF THE else IN execute().
-    //Create the child process;
-    pid_t pid = fork();
-
-    if(pid < 0){
-        //Here we know that there was an error.
-        perror("Fork failed ");
-    } else if (pid == 0){
-        //Here we know that this is the child process.
-        //Put the arguments from the vector to the char array.
-        char* args[arguments.size()+1];
-        for (int i=0; i<arguments.size(); ++i) {
-            args[i] = (char *) arguments.at(i).c_str();
-        }
-        //Set the last argument to be a nullptr.(Required by the documentation.)
-        args[arguments.size()] = nullptr;
-        //Execute the program.
-        if(execvp(args[0], args)){
-            perror("exec ");
-        }
-        exit(0);
-    }
-    //Only the parent can proceed with the code below.
-
-    //Catch the child process. Otherwise it will become a zombie process(defunct).
-    wait(nullptr);
 }
 
 void SimpleCommand::ioredirectPerfrom() {
