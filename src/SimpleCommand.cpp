@@ -7,6 +7,7 @@
 #include <pwd.h>
 #include <grp.h>
 #include <fstream>
+#include <fcntl.h>
 #include "SimpleCommand.h"
 
 using namespace std;
@@ -27,32 +28,11 @@ void SimpleCommand::execute() {
         //THIS ELSE-IF SHOULD NOT BE NEEDED, ACCORDING TO ANTHONY. CAN JUST BE HANDLED BY THE ELSE.
         ioredirectPerfrom();
     } else {
-        //Every other command that can just be performed with execvp, without further editing.'
-        pid_t pid = fork();
-
-        if (pid < 0) {
-            //Something went wrong while forking.
-            perror("Forking in simpleCommand failed ");
-        } else if (pid == 0) {
-            //The newly created child process goes here and performs the given command.
-            //Make an array for execvp with space for the program name and nullptr at the end.
-            const char **givenArgs = new const char* [arguments.size() + 2];
-            //Add the command itself to the start of the arguments array.
-            givenArgs[0] = command.c_str();
-
-            for (int i = 0; i < arguments.size(); ++i) {
-                //Now add every argument one after another to the arguments array, as cstrings.
-                givenArgs[i + 1] = arguments[i].c_str();
-            }
-
-            //Now finally add a nullptr to the end of the arguments array, to denote the end of the arguments.
-            givenArgs[arguments.size() + 1] = nullptr;
-
-            //Then execvp() the command given, along with the given arguments.
-            execvp(givenArgs[0], (char **) givenArgs);
+        if (redirects.empty()){
+            cmdPerform();
+        } else {
+            ioredirectPerfrom();
         }
-        //Only the parent process will end up there, which will wait until the child is done.
-        wait(nullptr);
     }
 }
 
@@ -88,45 +68,108 @@ void SimpleCommand::chdirPerform() {
 }
 
 void SimpleCommand::ioredirectPerfrom() {
-    //Work in progress.
     pid_t pid = fork();
-
-    if(pid == 0){
-        string cmd = "cat";
-        string data;
-        FILE * stream;
-        const int max_buffer = 256;
-        char buffer[max_buffer];
-
-        stream = popen(cmd.c_str(), "r");
-        if (stream) {
-            while (!feof(stream)) {
-                if (fgets(buffer, max_buffer, stream) != nullptr){
-                    data.append(buffer);
+    if (pid == 0) {
+        vector<int> streams;
+        for (int a = 0; a < redirects.size() ; ++a) {
+            //Set the appropriate flags and stream to be closed depending on the type of "redirection".
+            switch (redirects.at(a).getType()) {
+                case IORedirect::OUTPUT: {
+                    int fd;
+                    if (redirects.at(a).getOldFileDescriptor() == 2 ){
+                        fd = open((char *) redirects.at(a).getNewFile().c_str(),
+                                      O_RDWR | O_APPEND | O_CREAT/*, getuid()*/);
+                        if (fcntl(2, F_GETFD) != -1) {
+                            close(2);
+                            dup(fd);
+                        }
+                    } else {
+                        fd = open((char *) redirects.at(a).getNewFile().c_str(),
+                                      O_RDWR | O_TRUNC | O_CREAT, getuid());
+                        if (fcntl(1, F_GETFD) != -1) {
+                            close(1);
+                            dup(fd);
+                        }
+                    }
+                    streams.push_back(fd);
+                    break;
+                }
+                case IORedirect::APPEND: {
+                    int fd = open((char *) redirects.at(a).getNewFile().c_str(),
+                                  O_RDWR | O_APPEND | O_CREAT, getuid());
+                    if (fcntl(1, F_GETFD) != -1) {
+                        close(1);
+                        dup(fd);
+                    }
+                    streams.push_back(fd);
+                    break;
+                }
+                case IORedirect::INPUT: {
+                    int fd = open((char *) redirects.at(a).getNewFile().c_str(), O_RDONLY);
+                    if (fcntl(0, F_GETFD) != -1) {
+                        close(0);
+                        dup(fd);
+                    }
+                    streams.push_back(fd);
+                    break;
+                }
+                default: {
+                    cout << arguments[1];
+                    break;
                 }
             }
-            pclose(stream);
+        }
+        //Copy the arguments to a char array.
+        char *args[arguments.size() + 2];
+        args[0] = (char *) command.c_str();
+        for (int i = 1; i < arguments.size(); ++i) {
+            args[i] = (char *) arguments[i].c_str();
+        }
+        //Add nullptr to indicate the end of the command.
+        args[arguments.size() + 1] = nullptr;
+        //Execute the command.
+        if (execvp(args[0], args)) {
+            perror("exec ");
+        }
+        //Close the file.
+        for (int k = 0; k < streams.size(); ++k) {
+            close(streams[k]);
         }
 
-        std::fstream fs;
-        fs.open ("copy", std::fstream::in | std::fstream::out | std::fstream::app);
-        fs << data;
-        fs.close();
         exit(0);
     }
-    wait(0);
-//        int pfd;
-//        char * filename = const_cast<char *>("copy");
-//        if ((pfd = open(filename, O_WRONLY | O_CREAT | O_TRUNC,
-//                        S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1)
-//        {
-//            perror("Cannot open output file\n"); exit(1);
-//        }
-//
-//        dup2(pfd, 1);
-//        printf("hi");
+    wait(nullptr);
 }
 
+void SimpleCommand::cmdPerform() {
+    //Every other command that can just be performed with execvp, without further editing.'
+    pid_t pid = fork();
+
+    if (pid < 0) {
+        //Something went wrong while forking.
+        perror("Forking in simpleCommand failed ");
+    } else if (pid == 0) {
+        //The newly created child process goes here and performs the given command.
+        //Make an array for execvp with space for the program name and nullptr at the end.
+        const char **givenArgs = new const char* [arguments.size() + 2];
+        //Add the command itself to the start of the arguments array.
+        givenArgs[0] = command.c_str();
+
+        for (int i = 0; i < arguments.size(); ++i) {
+            //Now add every argument one after another to the arguments array, as cstrings.
+            givenArgs[i + 1] = arguments[i].c_str();
+        }
+
+        //Now finally add a nullptr to the end of the arguments array, to denote the end of the arguments.
+        givenArgs[arguments.size() + 1] = nullptr;
+
+        //Then execvp() the command given, along with the given arguments.
+        execvp(givenArgs[0], (char **) givenArgs);
+        exit(0);
+    }
+    //Only the parent process will end up there, which will wait until the child is done.
+    wait(nullptr);
+}
 /* --- LEGACY CODE ------------------------------------------------------------------------------------------------- */
 
 /**
