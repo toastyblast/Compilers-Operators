@@ -21,14 +21,14 @@ void Pipeline::execute() {
 //    std::cout << "FIX: You should change Pipeline::execute()" << std::endl;
 
     //Original code made by teachers:
+    // Uncomment this and comment out the code underneath the "testing code" part to make the program work again
 //    for (SimpleCommand *cmd : commands) {
 //        // FIXME: Probably need to set up some pipe here?
 //
 //        cmd->execute();
 //    }
-    // ------------
 
-    /* --- Testing code ------------------------------------ */
+    /* --- Testing code, please ignore. ------------------------------------ */
 //    int pipefd [2];
 //
 //    if (pipe(pipefd) < 0) {
@@ -64,8 +64,9 @@ void Pipeline::execute() {
 //        exit(EXIT_SUCCESS);
 //    }
 //    exit(EXIT_FAILURE);
-    // ----------------------------------
+    /* --- End of testing code ----------------------------------------------- */
 
+    //FIXME - Yoran: Make this work after all these goddamn days and hours thrown away at no progress.
     if (commands.size() == 1) {
         //If there's only one command, we just execute it, as there's no need for piping.
         commands.at(0)->execute();
