@@ -2,7 +2,13 @@
 #include <unistd.h>
 #include "Sequence.h"
 #include "Pipeline.h"
-
+#include <sys/types.h>
+#include <sys/wait.h>
+void signalHandler( int signum ) {
+	pid_t pid = 0;
+	int status;
+	waitpid(pid, &status, WNOHANG);
+}
 /**
  * Destructor.
  */
@@ -20,9 +26,20 @@ Sequence::~Sequence() {
  */
 void Sequence::execute() {
 	std::cout << "FIXME: You should change Sequence::execute()" << std::endl;
+	signal(SIGCHLD, signalHandler);
+	pid_t pid;
 
 	for( Pipeline *p : pipelines ) {
-		// FIXME: More code needed?
-		p->execute();
+		if(p->isAsync()){
+			if ((pid = fork()) < 0)
+				perror("fork() error");
+			else if (pid == 0) {
+				p->execute();
+				exit(1);
+			}
+		} else {
+			p->execute();
+		}
+
 	}
 }

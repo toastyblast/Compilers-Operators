@@ -75,20 +75,18 @@ void SimpleCommand::ioredirectPerfrom() {
             //Set the appropriate flags and stream to be closed depending on the type of "redirection".
             switch (redirects.at(a).getType()) {
                 case IORedirect::OUTPUT: {
-                    int fd = open((char *) redirects.at(a).getNewFile().c_str(),
-                              O_RDWR | O_TRUNC | O_CREAT, getuid());
-                    if (redirects.at(a).getOldFileDescriptor() == 2 ){
-                        if (fcntl(2, F_GETFD) != -1) {
-                            close(2);
-                            dup(fd);
-                        }
+                    int fd = 0;
+                    if(redirects.at(a).getNewFile().at(0) != '&'){
+                        fd = open((char *) redirects.at(a).getNewFile().c_str(),
+                                  O_RDWR | O_TRUNC | O_CREAT, getuid());
                     } else {
-                        if (fcntl(1, F_GETFD) != -1) {
-                            close(1);
-                            dup(fd);
-                        }
+                        char ok = redirects.at(a).getNewFile().at(1);
+                        fd = ok - 48;
                     }
-                    streams.push_back(fd);
+
+                    close(redirects.at(a).getOldFileDescriptor());
+                    dup(fd);
+
                     break;
                 }
                 case IORedirect::APPEND: {
