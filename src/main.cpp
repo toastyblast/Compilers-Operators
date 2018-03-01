@@ -8,6 +8,7 @@
 #include "CommandVisitor.h"
 #include "Sequence.h"
 #include "Singleton.h"
+#include "History.h"
 
 class ErrorListener : public antlr4::BaseErrorListener {
 	bool seenError;
@@ -74,6 +75,19 @@ int main() {
 		// Read a complete line
 		std::string line;
 		std::getline(std::cin, line);
+        if (line.substr(0,3) == "hst" && line.size() > 3){
+            std::istringstream iss (line);
+            std::string cmd; iss >> cmd;
+            std::string number; iss >> number;
+            if(!isdigit(number.at(0))){
+                std::cerr << "Invalid number!" << std::endl;
+                continue;
+            }
+            line = History::getHistory()->getCommand(std::stoi(number));
+            if (line == "bad"){
+                continue;
+            }
+        }
 
 		// Check if the user typed 'exit'.
 		// Now this is a bit of a hack, since the nice way to do this is actually
@@ -109,6 +123,7 @@ int main() {
 
 			// Execute sequence
 			// Now these execute() methods are were you have to add your code...
+            History::getHistory()->addCommandLine(line);
 			sequence2->execute();
 
 			// Cleanup

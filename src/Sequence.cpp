@@ -31,7 +31,8 @@ void Sequence::execute() {
 	for( Pipeline *p : pipelines ) {
         //If the command is build-in don't fork it.
 		if (p->getComands().at(0)->getCommand() == "cd"
-                || p->getComands().at(0)->getCommand() == "pwd"){
+                || p->getComands().at(0)->getCommand() == "pwd"
+                || p->getComands().at(0)->getCommand() == "history"){
             p->execute();
         } else {
             if(p->isAsync()){

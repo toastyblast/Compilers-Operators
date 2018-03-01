@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include "SimpleCommand.h"
 #include "Singleton.h"
+#include "History.h"
 
 using namespace std;
 
@@ -18,6 +19,7 @@ void SimpleCommand::execute() {
         //OLD, HANDMADE LS CODE LEFT HERE FOR PAUL DE GROOT, AS HE REQUESTED.
         //The command given is "lso". The user wants a list of all items in this directory. OLD, LEGACY VERSION, MADE BY HAND
         dolsoChecks();
+        exit(0);
     } else if (command == "pwd") {
         //THIS ELSE-IF CAN STAY, ACCORDING TO ANTHONY.
         //The user wants to know what the current directory they're at is.
@@ -25,9 +27,15 @@ void SimpleCommand::execute() {
     } else if (command == "cd") {
         //THIS ELSE-IF CAN STAY, ACCORDING TO ANTHONY.
         chdirPerform();
-    } else if (command == "redirect") {
+    } else if (command == "history") {
         //THIS ELSE-IF SHOULD NOT BE NEEDED, ACCORDING TO ANTHONY. CAN JUST BE HANDLED BY THE ELSE.
-        ioredirectPerfrom();
+        if (arguments.empty()){
+            History::getHistory()->seeHistory();
+        } else if (arguments.at(0) == "clear"){
+            History::getHistory()->clearHistory();
+        } else {
+            std::cerr << " Unknown 'history' command. Usable commands: history / history clear / hst <number>";
+        }
     } else {
         if (redirects.empty()){
             cmdPerform();
