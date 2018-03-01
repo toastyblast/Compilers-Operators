@@ -27,6 +27,7 @@ class SimpleCommand {
 		{}
 
 		void addArgument( std::string const &s ) { arguments.push_back(s); }
+        std::string getCommand()const { return command;}
 		void addIORedirect( int fd, IORedirect::Type t, std::string const &s ) {
 			redirects.emplace_back(fd, t, s);
 		}
