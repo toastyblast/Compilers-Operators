@@ -68,96 +68,76 @@ void SimpleCommand::chdirPerform() {
 }
 
 void SimpleCommand::ioredirectPerfrom() {
-    pid_t pid = fork();
-    if (pid == 0) {
-        vector<int> streams;
-        for (int a = 0; a < redirects.size() ; ++a) {
-            //Set the appropriate flags and stream to be closed depending on the type of "redirection".
-            switch (redirects.at(a).getType()) {
-                case IORedirect::OUTPUT: {
-                    int fd = open((char *) redirects.at(a).getNewFile().c_str(),
+    vector<int> streams;
+    for (int a = 0; a < redirects.size() ; ++a) {
+        //Set the appropriate flags and stream to be closed depending on the type of "redirection".
+        switch (redirects.at(a).getType()) {
+            case IORedirect::OUTPUT: {
+                int fd = 0;
+                if(redirects.at(a).getNewFile().at(0) != '&'){
+                    fd = open((char *) redirects.at(a).getNewFile().c_str(),
                               O_RDWR | O_TRUNC | O_CREAT, getuid());
-                    if (redirects.at(a).getOldFileDescriptor() == 2 ){
-                        if (fcntl(2, F_GETFD) != -1) {
-                            close(2);
-                            dup(fd);
-                        }
-                    } else {
-                        if (fcntl(1, F_GETFD) != -1) {
-                            close(1);
-                            dup(fd);
-                        }
-                    }
-                    streams.push_back(fd);
-                    break;
+                } else {
+                    char ok = redirects.at(a).getNewFile().at(1);
+                    fd = ok - 48;
                 }
-                case IORedirect::APPEND: {
-                    int fd = open((char *) redirects.at(a).getNewFile().c_str(),
-                                  O_RDWR | O_APPEND | O_CREAT, getuid());
-                    if (redirects.at(a).getOldFileDescriptor() == 2 ){
-                        if (fcntl(2, F_GETFD) != -1) {
-                            close(2);
-                            dup(fd);
-                        }
-                    } else {
-                        if (fcntl(1, F_GETFD) != -1) {
-                            close(1);
-                            dup(fd);
-                        }
-                    }
-                    streams.push_back(fd);
-                    break;
-                }
-                case IORedirect::INPUT: {
-                    int fd = open((char *) redirects.at(a).getNewFile().c_str(), O_RDONLY);
-                    if (fcntl(0, F_GETFD) != -1) {
-                        close(0);
+
+                close(redirects.at(a).getOldFileDescriptor());
+                dup(fd);
+
+                break;
+            }
+            case IORedirect::APPEND: {
+                int fd = open((char *) redirects.at(a).getNewFile().c_str(),
+                              O_RDWR | O_APPEND | O_CREAT, getuid());
+                if (redirects.at(a).getOldFileDescriptor() == 2 ){
+                    if (fcntl(2, F_GETFD) != -1) {
+                        close(2);
                         dup(fd);
                     }
-                    streams.push_back(fd);
-                    break;
+                } else {
+                    if (fcntl(1, F_GETFD) != -1) {
+                        close(1);
+                        dup(fd);
+                    }
                 }
-                default: {
-                    cout << arguments[1];
-                    break;
+                streams.push_back(fd);
+                break;
+            }
+            case IORedirect::INPUT: {
+                int fd = open((char *) redirects.at(a).getNewFile().c_str(), O_RDONLY);
+                if (fcntl(0, F_GETFD) != -1) {
+                    close(0);
+                    dup(fd);
                 }
+                streams.push_back(fd);
+                break;
+            }
+            default: {
+                cout << arguments[1];
+                break;
             }
         }
-        cmdPerform();
-        exit(0);
     }
-    wait(nullptr);
+    cmdPerform();
 }
 
 void SimpleCommand::cmdPerform() {
-    //Every other command that can just be performed with execvp, without further editing.'
-    pid_t pid = fork();
+    //Make an array for execvp with space for the program name and nullptr at the end.
+    const char **givenArgs = new const char* [arguments.size() + 2];
+    //Add the command itself to the start of the arguments array.
+    givenArgs[0] = command.c_str();
 
-    if (pid < 0) {
-        //Something went wrong while forking.
-        perror("Forking in simpleCommand failed ");
-    } else if (pid == 0) {
-        //The newly created child process goes here and performs the given command.
-        //Make an array for execvp with space for the program name and nullptr at the end.
-        const char **givenArgs = new const char* [arguments.size() + 2];
-        //Add the command itself to the start of the arguments array.
-        givenArgs[0] = command.c_str();
-
-        for (int i = 0; i < arguments.size(); ++i) {
-            //Now add every argument one after another to the arguments array, as cstrings.
-            givenArgs[i + 1] = arguments[i].c_str();
-        }
-
-        //Now finally add a nullptr to the end of the arguments array, to denote the end of the arguments.
-        givenArgs[arguments.size() + 1] = nullptr;
-
-        //Then execvp() the command given, along with the given arguments.
-        execvp(givenArgs[0], (char **) givenArgs);
-        delete(givenArgs);
-        exit(0);
+    for (int i = 0; i < arguments.size(); ++i) {
+        //Now add every argument one after another to the arguments array, as cstrings.
+        givenArgs[i + 1] = arguments[i].c_str();
     }
-    //Only the parent process will end up there, which will wait until the child is done.
-    wait(nullptr);
+
+    //Now finally add a nullptr to the end of the arguments array, to denote the end of the arguments.
+    givenArgs[arguments.size() + 1] = nullptr;
+
+    //Then execvp() the command given, along with the given arguments.
+    execvp(givenArgs[0], (char **) givenArgs);
 }
 /* --- LEGACY CODE ------------------------------------------------------------------------------------------------- */
 

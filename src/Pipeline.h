@@ -2,7 +2,7 @@
 #define SHELL_PIPELINE_H
 
 #include <vector>
-class SimpleCommand;
+#include "SimpleCommand.h"
 
 /**
  * A pipeline, i.e. a set of simple commands of which the output of each previous
@@ -15,7 +15,7 @@ class Pipeline {
 		std::vector<SimpleCommand *> commands; //< The commands to execute
 		bool async;                            //< True if this the sequence does not need to wait for the
 		                                       //  pipeline to finish.
-
+        bool wait;
 	public:
 		Pipeline()
 				: commands()
@@ -25,9 +25,11 @@ class Pipeline {
 		~Pipeline();
 
 		bool isAsync() const    { return async; }
+        bool isWait() const { return wait;}
 		void setAsync( bool b ) { async = b; }
 
 		void addCommand( SimpleCommand *cmd ) { commands.push_back(cmd); }
+        std::vector<SimpleCommand *> getComands() { return commands;}
 
 		void execute();
 };
