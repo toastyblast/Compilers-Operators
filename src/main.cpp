@@ -9,6 +9,9 @@
 #include "Sequence.h"
 #include "Singleton.h"
 #include "History.h"
+#include <unistd.h>
+#include <pwd.h>
+
 
 class ErrorListener : public antlr4::BaseErrorListener {
 	bool seenError;
@@ -30,41 +33,14 @@ public:
 };
 
 int main() {
-    //PLEASE NOTE: I tried putting this into a method, since it's duplicate code from a bit further on. However, this
-    // would result in a code 11 SIGSEGV. I couldn't find anything on this error code in conjunction to what I was
-    // doing, so sadly I have to leave this duplicate code in, or the shell won't work.
-
-    //Do a command first, which is the "cd ~" command. This is so that we have the user start in their home directory.
-    // Create an error listener. This will be called when an error occured.
-    ErrorListener errorListener;
-
-    // Create parser and lexer for line
-    // The lexer combines characters into meaningful tokens
-    // The parser then uses these tokens to deduce meaning of the line
-    antlr4::ANTLRInputStream inputStream("cd ~");
-    ShellGrammarLexer lexer(&inputStream);
-    lexer.removeErrorListeners();
-    lexer.addErrorListener(&errorListener);
-    antlr4::CommonTokenStream tokens(&lexer);
-    ShellGrammarParser parser(&tokens);
-    parser.removeErrorListeners();
-    parser.addErrorListener(&errorListener);
-
-    // Actually parse the line
-    antlr4::tree::ParseTree *parseTree = parser.sequence();
-
-    //Create a visitor that will create a sequence out of each seperate command in the parse tree we made.
-    CommandVisitor visitor;
-    Sequence *sequence = visitor.visit(parseTree);
-
-    // Execute the sequence of commands.
-    sequence->execute();
-
-    // Cleanup
-    delete sequence;
-
-	//To make sure that the last directory also points to the home, and not back to the root of this project.
-	Singleton::getInstance().setLastDirectory(::get_current_dir_name());
+    //Get the user's details.
+    struct passwd *pw = getpwuid(getuid());
+    //Get the user's home dir path.
+    const char *directory = pw->pw_dir;
+    //Change the home dir.
+    chdir(directory);
+    //Print the home dir.
+    std::cout << ::get_current_dir_name() << " ";
 
 	static const char *PROMPT = "-> ";
 	while( true ) {
