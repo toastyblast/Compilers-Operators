@@ -25,7 +25,6 @@ Sequence::~Sequence() {
  * Otherwise, wait until execution is done before continuing.
  */
 void Sequence::execute() {
-	std::cout << "FIXME: You should change Sequence::execute()" << std::endl;
 	signal(SIGCHLD, signalHandler);
 	pid_t pid;
 

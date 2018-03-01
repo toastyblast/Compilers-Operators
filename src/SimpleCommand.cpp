@@ -9,6 +9,7 @@
 #include <fstream>
 #include <fcntl.h>
 #include "SimpleCommand.h"
+#include "Singleton.h"
 
 using namespace std;
 
@@ -44,25 +45,54 @@ void SimpleCommand::pwdPerform() {
 }
 
 void SimpleCommand::chdirPerform() {
+    Singleton& singleton = Singleton::getInstance();
+
     const char *directory = nullptr;
     if (!arguments.empty()) {
         //Set the path.
         if (arguments.at(0)[0] == '~') {
+            //Store the directory we are currently at before we change to the one the user gave, so we can always go back.
+            singleton.setLastDirectory(::get_current_dir_name());
+
             //If the argument is "~", the user is returned to the home directory.
             struct passwd *pw = getpwuid(getuid());
+            //Now go to the directory given by the user.
             directory = pw->pw_dir;
-        } else {
+        } else if (arguments.at(0)[0] == '-') {
+            //If the user wants to go back to the last directory they were at.
+
+            //Store the last directory we have visited prior to the current one temporarily.
+            const char* directoryToGoBackTo = singleton.getLastDirectory();
+
+            //Set the new last directory visited to the one we were currently at.
+            singleton.setLastDirectory(::get_current_dir_name());
+
+            //Now go to the directory we were located at before the current one.
+            directory = directoryToGoBackTo;
+        }
+        else {
+            //Store the directory we are currently at before we change to the one the user gave, so we can always go back.
+            singleton.setLastDirectory(::get_current_dir_name());
+
+            //Now go to the directory the user wants to go to.
             directory = arguments.data()->c_str();
         }
     } else {
         //If no path is specified a.k.a only "cd" is written. The user is returned to the home directory.
+
+        //Store the directory we are currently at before we change to the one the user gave, so we can always go back.
+        singleton.setLastDirectory(::get_current_dir_name());
+
+        //Get the home directory of the user
         struct passwd *pw = getpwuid(getuid());
+        //Now go to the home directory.
         directory = pw->pw_dir;
     }
 
     if (chdir(directory) == -1) {
         perror("cd ");
     } else {
+        //Finally, let the user know what path they've been brought to, so they can confirm it's correct.
         pwdPerform();
     }
 }

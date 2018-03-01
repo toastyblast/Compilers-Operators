@@ -2,10 +2,12 @@
 #include <ANTLRInputStream.h>
 #include <CommonTokenStream.h>
 #include <tree/ParseTree.h>
+#include <unistd.h>
 #include "../gen/ShellGrammarLexer.h"
 #include "../gen/ShellGrammarParser.h"
 #include "CommandVisitor.h"
 #include "Sequence.h"
+#include "Singleton.h"
 
 class ErrorListener : public antlr4::BaseErrorListener {
 	bool seenError;
@@ -59,6 +61,9 @@ int main() {
 
     // Cleanup
     delete sequence;
+
+	//To make sure that the last directory also points to the home, and not back to the root of this project.
+	Singleton::getInstance().setLastDirectory(::get_current_dir_name());
 
 	static const char *PROMPT = "-> ";
 	while( true ) {
