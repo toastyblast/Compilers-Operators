@@ -31,14 +31,10 @@ void SimpleCommand::execute() {
         if (arguments.empty()){
             History::getHistory()->seeHistory();
         } else if (arguments.at(0) == "clear"){
-            //Doesn't work for some reason.
-            //History is not deleted.
-//            History::getHistory()->clearHistory();
-            History::getHistory()->addCommandLine("hi");
+            History::getHistory()->clearHistory();
         } else {
             std::cerr << " Unknown 'history' command. Usable commands: history / history clear / hst <number>";
         }
-        exit(0);
     } else {
         if (redirects.empty()){
             cmdPerform();
