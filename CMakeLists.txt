@@ -335,8 +335,7 @@ set(SHELL_FILES
     src/IORedirect.h
         src/Singleton.cpp
         src/Singleton.h
-        src/History.cpp
-        src/History.h)
+        )
 
 include_directories(
     runtime/src

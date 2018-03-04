@@ -2,6 +2,7 @@
 #define SHELL_SINGLETON_H
 
 #include <antlr4-runtime.h>
+#include "Sequence.h"
 
 using namespace std;
 
@@ -20,6 +21,9 @@ private:
 
     const char* lastDirectory;
 
+    std::vector<Sequence*> commandsExecutables;
+    std::vector<std::string> commandsLines;
+
 public:
     //Prevent the copy constructor and operator copy constructor from being usable.
     Singleton(Singleton const &) = delete;
@@ -27,6 +31,12 @@ public:
 
     const char* getLastDirectory();
     void setLastDirectory(const char*);
+
+    void addCommandExecutable(Sequence*);
+    void addCommandLine(string);
+    void seeHistory();
+    void clearHistory();
+    string getCommand(int);
 };
 
 

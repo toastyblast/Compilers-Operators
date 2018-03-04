@@ -10,7 +10,6 @@
 #include <fcntl.h>
 #include "SimpleCommand.h"
 #include "Singleton.h"
-#include "History.h"
 
 using namespace std;
 
@@ -30,9 +29,9 @@ void SimpleCommand::execute() {
     } else if (command == "history") {
         //THIS ELSE-IF SHOULD NOT BE NEEDED, ACCORDING TO ANTHONY. CAN JUST BE HANDLED BY THE ELSE.
         if (arguments.empty()){
-            History::getHistory()->seeHistory();
+            Singleton::getInstance().seeHistory();
         } else if (arguments.at(0) == "clear"){
-            History::getHistory()->clearHistory();
+            Singleton::getInstance().clearHistory();
         } else {
             std::cerr << " Unknown 'history' command. Usable commands: history / history clear / hst <number>";
         }

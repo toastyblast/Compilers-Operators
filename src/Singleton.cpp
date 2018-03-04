@@ -37,3 +37,44 @@ void Singleton::setLastDirectory(const char* directory) {
 
     lastDirectory = directory;
 }
+
+/* --- HISTORY-RELATED CODE ---------------------------------------------------------------------------------------- */
+
+void Singleton::addCommandExecutable(Sequence * sc) {
+    commandsExecutables.push_back(sc);
+}
+
+void Singleton::addCommandLine(string cmd) {
+    if(cmd.find("history") == string::npos
+       && cmd.find("hst") == string::npos) {
+        commandsLines.push_back(cmd);
+    }
+}
+
+string Singleton::getCommand(int number) {
+    if (!commandsLines.empty()){
+        if (number >= 0 && number < commandsLines.size()) {
+            return commandsLines.at(number);
+        } else {
+            std::cerr << "Invalid number!" << std::endl;
+            return "bad";
+        }
+    } else {
+        std::cerr << "No commands have been executed yet." << std::endl;
+        return "bad";
+    }
+
+}
+
+void Singleton::seeHistory() {
+    std::cout << " List of all the commands that were executed during this session. " << std::endl;
+    std::cout << " To execute a command type hst <command number>. " << std::endl;
+
+    for (int i = 0; i < commandsLines.size(); ++i) {
+        std::cout << " [" << i << "] " << commandsLines.at(i) << std::endl;
+    }
+}
+
+void Singleton::clearHistory() {
+    commandsLines.clear();
+}

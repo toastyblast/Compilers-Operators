@@ -8,8 +8,6 @@
 #include "CommandVisitor.h"
 #include "Sequence.h"
 #include "Singleton.h"
-#include "History.h"
-#include <unistd.h>
 #include <pwd.h>
 
 
@@ -59,7 +57,7 @@ int main() {
                 std::cerr << "Invalid number!" << std::endl;
                 continue;
             }
-            line = History::getHistory()->getCommand(std::stoi(number));
+            line = Singleton::getInstance().getCommand(std::stoi(number));
             if (line == "bad"){
                 continue;
             }
@@ -99,7 +97,7 @@ int main() {
 
 			// Execute sequence
 			// Now these execute() methods are were you have to add your code...
-            History::getHistory()->addCommandLine(line);
+            Singleton::getInstance().addCommandLine(line);
 			sequence2->execute();
 
 			// Cleanup
