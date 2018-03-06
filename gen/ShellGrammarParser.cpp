@@ -1,7 +1,8 @@
 
-// Generated from D:/Prog/Saxion/2.3-Compilers-Operating-Systems/Practical/Shell/Base\ShellGrammar.g4 by ANTLR 4.7
+// Generated from /home/martin/CLionProjects/Compilers-Operators-gr/ShellGrammar.g4 by ANTLR 4.7
 
 
+#include "ShellGrammarListener.h"
 #include "ShellGrammarVisitor.h"
 
 #include "ShellGrammarParser.h"
@@ -65,6 +66,19 @@ tree::TerminalNode* ShellGrammarParser::SequenceContext::AMPERSAND() {
 size_t ShellGrammarParser::SequenceContext::getRuleIndex() const {
   return ShellGrammarParser::RuleSequence;
 }
+
+void ShellGrammarParser::SequenceContext::enterRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<ShellGrammarListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->enterSequence(this);
+}
+
+void ShellGrammarParser::SequenceContext::exitRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<ShellGrammarListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->exitSequence(this);
+}
+
 
 antlrcpp::Any ShellGrammarParser::SequenceContext::accept(tree::ParseTreeVisitor *visitor) {
   if (auto parserVisitor = dynamic_cast<ShellGrammarVisitor*>(visitor))
@@ -135,10 +149,31 @@ tree::TerminalNode* ShellGrammarParser::SeqDelimContext::AMPERSAND() {
   return getToken(ShellGrammarParser::AMPERSAND, 0);
 }
 
+tree::TerminalNode* ShellGrammarParser::SeqDelimContext::X2AMPERSANDCO() {
+  return getToken(ShellGrammarParser::X2AMPERSANDCO, 0);
+}
+
+tree::TerminalNode* ShellGrammarParser::SeqDelimContext::X2LINECO() {
+  return getToken(ShellGrammarParser::X2LINECO, 0);
+}
+
 
 size_t ShellGrammarParser::SeqDelimContext::getRuleIndex() const {
   return ShellGrammarParser::RuleSeqDelim;
 }
+
+void ShellGrammarParser::SeqDelimContext::enterRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<ShellGrammarListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->enterSeqDelim(this);
+}
+
+void ShellGrammarParser::SeqDelimContext::exitRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<ShellGrammarListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->exitSeqDelim(this);
+}
+
 
 antlrcpp::Any ShellGrammarParser::SeqDelimContext::accept(tree::ParseTreeVisitor *visitor) {
   if (auto parserVisitor = dynamic_cast<ShellGrammarVisitor*>(visitor))
@@ -159,9 +194,11 @@ ShellGrammarParser::SeqDelimContext* ShellGrammarParser::seqDelim() {
     enterOuterAlt(_localctx, 1);
     setState(26);
     _la = _input->LA(1);
-    if (!(_la == ShellGrammarParser::SEMICOLON
-
-    || _la == ShellGrammarParser::AMPERSAND)) {
+    if (!((((_la & ~ 0x3fULL) == 0) &&
+      ((1ULL << _la) & ((1ULL << ShellGrammarParser::SEMICOLON)
+      | (1ULL << ShellGrammarParser::AMPERSAND)
+      | (1ULL << ShellGrammarParser::X2AMPERSANDCO)
+      | (1ULL << ShellGrammarParser::X2LINECO))) != 0))) {
     _errHandler->recoverInline(this);
     }
     else {
@@ -205,6 +242,19 @@ tree::TerminalNode* ShellGrammarParser::PipelineContext::PIPE(size_t i) {
 size_t ShellGrammarParser::PipelineContext::getRuleIndex() const {
   return ShellGrammarParser::RulePipeline;
 }
+
+void ShellGrammarParser::PipelineContext::enterRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<ShellGrammarListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->enterPipeline(this);
+}
+
+void ShellGrammarParser::PipelineContext::exitRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<ShellGrammarListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->exitPipeline(this);
+}
+
 
 antlrcpp::Any ShellGrammarParser::PipelineContext::accept(tree::ParseTreeVisitor *visitor) {
   if (auto parserVisitor = dynamic_cast<ShellGrammarVisitor*>(visitor))
@@ -274,6 +324,19 @@ ShellGrammarParser::IoRedirectContext* ShellGrammarParser::SimpleCommandContext:
 size_t ShellGrammarParser::SimpleCommandContext::getRuleIndex() const {
   return ShellGrammarParser::RuleSimpleCommand;
 }
+
+void ShellGrammarParser::SimpleCommandContext::enterRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<ShellGrammarListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->enterSimpleCommand(this);
+}
+
+void ShellGrammarParser::SimpleCommandContext::exitRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<ShellGrammarListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->exitSimpleCommand(this);
+}
+
 
 antlrcpp::Any ShellGrammarParser::SimpleCommandContext::accept(tree::ParseTreeVisitor *visitor) {
   if (auto parserVisitor = dynamic_cast<ShellGrammarVisitor*>(visitor))
@@ -350,6 +413,19 @@ size_t ShellGrammarParser::IoRedirectContext::getRuleIndex() const {
   return ShellGrammarParser::RuleIoRedirect;
 }
 
+void ShellGrammarParser::IoRedirectContext::enterRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<ShellGrammarListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->enterIoRedirect(this);
+}
+
+void ShellGrammarParser::IoRedirectContext::exitRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<ShellGrammarListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->exitIoRedirect(this);
+}
+
+
 antlrcpp::Any ShellGrammarParser::IoRedirectContext::accept(tree::ParseTreeVisitor *visitor) {
   if (auto parserVisitor = dynamic_cast<ShellGrammarVisitor*>(visitor))
     return parserVisitor->visitIoRedirect(this);
@@ -417,6 +493,19 @@ size_t ShellGrammarParser::StringContext::getRuleIndex() const {
   return ShellGrammarParser::RuleString;
 }
 
+void ShellGrammarParser::StringContext::enterRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<ShellGrammarListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->enterString(this);
+}
+
+void ShellGrammarParser::StringContext::exitRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<ShellGrammarListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->exitString(this);
+}
+
+
 antlrcpp::Any ShellGrammarParser::StringContext::accept(tree::ParseTreeVisitor *visitor) {
   if (auto parserVisitor = dynamic_cast<ShellGrammarVisitor*>(visitor))
     return parserVisitor->visitString(this);
@@ -469,12 +558,12 @@ std::vector<std::string> ShellGrammarParser::_ruleNames = {
 };
 
 std::vector<std::string> ShellGrammarParser::_literalNames = {
-  "", "';'", "'&'", "'|'"
+  "", "';'", "'&'", "'&&'", "'||'", "'|'"
 };
 
 std::vector<std::string> ShellGrammarParser::_symbolicNames = {
-  "", "SEMICOLON", "AMPERSAND", "PIPE", "REDIRECTFD", "REDIRECT", "QUOTEDSTRING", 
-  "STRING", "WS"
+  "", "SEMICOLON", "AMPERSAND", "X2AMPERSANDCO", "X2LINECO", "PIPE", "REDIRECTFD", 
+  "REDIRECT", "QUOTEDSTRING", "STRING", "WS"
 };
 
 dfa::Vocabulary ShellGrammarParser::_vocabulary(_literalNames, _symbolicNames);
@@ -497,7 +586,7 @@ ShellGrammarParser::Initializer::Initializer() {
 
   _serializedATN = {
     0x3, 0x608b, 0xa72a, 0x8133, 0xb9ed, 0x417c, 0x3be7, 0x7786, 0x5964, 
-    0x3, 0xa, 0x39, 0x4, 0x2, 0x9, 0x2, 0x4, 0x3, 0x9, 0x3, 0x4, 0x4, 0x9, 
+    0x3, 0xc, 0x39, 0x4, 0x2, 0x9, 0x2, 0x4, 0x3, 0x9, 0x3, 0x4, 0x4, 0x9, 
     0x4, 0x4, 0x5, 0x9, 0x5, 0x4, 0x6, 0x9, 0x6, 0x4, 0x7, 0x9, 0x7, 0x3, 
     0x2, 0x3, 0x2, 0x3, 0x2, 0x3, 0x2, 0x7, 0x2, 0x13, 0xa, 0x2, 0xc, 0x2, 
     0xe, 0x2, 0x16, 0xb, 0x2, 0x3, 0x2, 0x5, 0x2, 0x19, 0xa, 0x2, 0x3, 0x2, 
@@ -506,8 +595,8 @@ ShellGrammarParser::Initializer::Initializer() {
     0x28, 0xa, 0x5, 0xd, 0x5, 0xe, 0x5, 0x29, 0x3, 0x5, 0x7, 0x5, 0x2d, 
     0xa, 0x5, 0xc, 0x5, 0xe, 0x5, 0x30, 0xb, 0x5, 0x3, 0x6, 0x3, 0x6, 0x3, 
     0x6, 0x5, 0x6, 0x35, 0xa, 0x6, 0x3, 0x7, 0x3, 0x7, 0x3, 0x7, 0x2, 0x2, 
-    0x8, 0x2, 0x4, 0x6, 0x8, 0xa, 0xc, 0x2, 0x4, 0x3, 0x2, 0x3, 0x4, 0x3, 
-    0x2, 0x8, 0x9, 0x2, 0x38, 0x2, 0xe, 0x3, 0x2, 0x2, 0x2, 0x4, 0x1c, 0x3, 
+    0x8, 0x2, 0x4, 0x6, 0x8, 0xa, 0xc, 0x2, 0x4, 0x3, 0x2, 0x3, 0x6, 0x3, 
+    0x2, 0xa, 0xb, 0x2, 0x38, 0x2, 0xe, 0x3, 0x2, 0x2, 0x2, 0x4, 0x1c, 0x3, 
     0x2, 0x2, 0x2, 0x6, 0x1e, 0x3, 0x2, 0x2, 0x2, 0x8, 0x27, 0x3, 0x2, 0x2, 
     0x2, 0xa, 0x34, 0x3, 0x2, 0x2, 0x2, 0xc, 0x36, 0x3, 0x2, 0x2, 0x2, 0xe, 
     0x14, 0x5, 0x6, 0x4, 0x2, 0xf, 0x10, 0x5, 0x4, 0x3, 0x2, 0x10, 0x11, 
@@ -518,7 +607,7 @@ ShellGrammarParser::Initializer::Initializer() {
     0x18, 0x17, 0x3, 0x2, 0x2, 0x2, 0x18, 0x19, 0x3, 0x2, 0x2, 0x2, 0x19, 
     0x1a, 0x3, 0x2, 0x2, 0x2, 0x1a, 0x1b, 0x7, 0x2, 0x2, 0x3, 0x1b, 0x3, 
     0x3, 0x2, 0x2, 0x2, 0x1c, 0x1d, 0x9, 0x2, 0x2, 0x2, 0x1d, 0x5, 0x3, 
-    0x2, 0x2, 0x2, 0x1e, 0x23, 0x5, 0x8, 0x5, 0x2, 0x1f, 0x20, 0x7, 0x5, 
+    0x2, 0x2, 0x2, 0x1e, 0x23, 0x5, 0x8, 0x5, 0x2, 0x1f, 0x20, 0x7, 0x7, 
     0x2, 0x2, 0x20, 0x22, 0x5, 0x8, 0x5, 0x2, 0x21, 0x1f, 0x3, 0x2, 0x2, 
     0x2, 0x22, 0x25, 0x3, 0x2, 0x2, 0x2, 0x23, 0x21, 0x3, 0x2, 0x2, 0x2, 
     0x23, 0x24, 0x3, 0x2, 0x2, 0x2, 0x24, 0x7, 0x3, 0x2, 0x2, 0x2, 0x25, 
@@ -528,8 +617,8 @@ ShellGrammarParser::Initializer::Initializer() {
     0x2, 0x2, 0x2b, 0x2d, 0x5, 0xa, 0x6, 0x2, 0x2c, 0x2b, 0x3, 0x2, 0x2, 
     0x2, 0x2d, 0x30, 0x3, 0x2, 0x2, 0x2, 0x2e, 0x2c, 0x3, 0x2, 0x2, 0x2, 
     0x2e, 0x2f, 0x3, 0x2, 0x2, 0x2, 0x2f, 0x9, 0x3, 0x2, 0x2, 0x2, 0x30, 
-    0x2e, 0x3, 0x2, 0x2, 0x2, 0x31, 0x32, 0x7, 0x7, 0x2, 0x2, 0x32, 0x35, 
-    0x5, 0xc, 0x7, 0x2, 0x33, 0x35, 0x7, 0x6, 0x2, 0x2, 0x34, 0x31, 0x3, 
+    0x2e, 0x3, 0x2, 0x2, 0x2, 0x31, 0x32, 0x7, 0x9, 0x2, 0x2, 0x32, 0x35, 
+    0x5, 0xc, 0x7, 0x2, 0x33, 0x35, 0x7, 0x8, 0x2, 0x2, 0x34, 0x31, 0x3, 
     0x2, 0x2, 0x2, 0x34, 0x33, 0x3, 0x2, 0x2, 0x2, 0x35, 0xb, 0x3, 0x2, 
     0x2, 0x2, 0x36, 0x37, 0x9, 0x3, 0x2, 0x2, 0x37, 0xd, 0x3, 0x2, 0x2, 
     0x2, 0x8, 0x14, 0x18, 0x23, 0x29, 0x2e, 0x34, 

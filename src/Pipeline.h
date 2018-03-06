@@ -15,18 +15,25 @@ class Pipeline {
 		std::vector<SimpleCommand *> commands; //< The commands to execute
 		bool async;                            //< True if this the sequence does not need to wait for the
 		                                       //  pipeline to finish.
-        bool wait;
+        bool continueOnSuccess;
+	    bool stopOnSuccess;
 	public:
 		Pipeline()
 				: commands()
 				, async(false)
+                , continueOnSuccess(false)
+                , stopOnSuccess(false)
 		{}
 
 		~Pipeline();
 
 		bool isAsync() const    { return async; }
-        bool isWait() const { return wait;}
+        bool isStop() const { return stopOnSuccess; }
+        bool isContinue() const { return continueOnSuccess; }
+
 		void setAsync( bool b ) { async = b; }
+        void setStop( bool b ) { stopOnSuccess = b; }
+        void setContinue( bool b ) { continueOnSuccess = b; }
 
 		void addCommand( SimpleCommand *cmd ) { commands.push_back(cmd); }
         std::vector<SimpleCommand *> getComands() { return commands;}

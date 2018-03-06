@@ -1,5 +1,5 @@
 
-// Generated from D:/Prog/Saxion/2.3-Compilers-Operating-Systems/Practical/Shell/Base\ShellGrammar.g4 by ANTLR 4.7
+// Generated from /home/martin/CLionProjects/Compilers-Operators-gr/ShellGrammar.g4 by ANTLR 4.7
 
 #pragma once
 
@@ -12,8 +12,8 @@
 class  ShellGrammarLexer : public antlr4::Lexer {
 public:
   enum {
-    SEMICOLON = 1, AMPERSAND = 2, PIPE = 3, REDIRECTFD = 4, REDIRECT = 5, 
-    QUOTEDSTRING = 6, STRING = 7, WS = 8
+    SEMICOLON = 1, AMPERSAND = 2, X2AMPERSANDCO = 3, X2LINECO = 4, PIPE = 5, 
+    REDIRECTFD = 6, REDIRECT = 7, QUOTEDSTRING = 8, STRING = 9, WS = 10
   };
 
   ShellGrammarLexer(antlr4::CharStream *input);
