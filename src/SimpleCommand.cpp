@@ -2,7 +2,6 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/stat.h>
-#include <sys/wait.h>
 #include <cstring>
 #include <pwd.h>
 #include <grp.h>
@@ -18,16 +17,14 @@ void SimpleCommand::execute() {
         //OLD, HANDMADE LS CODE LEFT HERE FOR PAUL DE GROOT, AS HE REQUESTED.
         //The command given is "lso". The user wants a list of all items in this directory. OLD, LEGACY VERSION, MADE BY HAND
         dolsoChecks();
-        exit(0);
     } else if (command == "pwd") {
-        //THIS ELSE-IF CAN STAY, ACCORDING TO ANTHONY.
         //The user wants to know what the current directory they're at is.
         pwdPerform();
     } else if (command == "cd") {
-        //THIS ELSE-IF CAN STAY, ACCORDING TO ANTHONY.
+        //User wants to change the current directory.
         chdirPerform();
     } else if (command == "history") {
-        //THIS ELSE-IF SHOULD NOT BE NEEDED, ACCORDING TO ANTHONY. CAN JUST BE HANDLED BY THE ELSE.
+        //This is for the added functionality of the "history" command.
         if (arguments.empty()){
             Singleton::getInstance().seeHistory();
         } else if (arguments.at(0) == "clear"){
@@ -36,6 +33,7 @@ void SimpleCommand::execute() {
             std::cerr << " Unknown 'history' command. Usable commands: history / history clear / hst <number>";
         }
     } else {
+        //There's most likely a normal program to run that can be done with execvp, or a redirect if these were given.
         if (redirects.empty()){
             cmdPerform();
         } else {
@@ -51,6 +49,9 @@ void SimpleCommand::pwdPerform() {
     cout << "Current directory: " << ::get_current_dir_name() << endl;
 }
 
+/**
+ * Method called when the user used the "cd" command. Changes the current working directory to the given one.
+ */
 void SimpleCommand::chdirPerform() {
     Singleton& singleton = Singleton::getInstance();
 
@@ -98,9 +99,6 @@ void SimpleCommand::chdirPerform() {
 
     if (chdir(directory) == -1) {
         perror("cd ");
-    } else {
-        //Finally, let the user know what path they've been brought to, so they can confirm it's correct.
-        pwdPerform();
     }
 }
 
@@ -159,6 +157,9 @@ void SimpleCommand::ioredirectPerfrom() {
     cmdPerform();
 }
 
+/**
+ * Method called in the case of a non-recognised command. This means we'll just try to exec() it. If not, the user will be told.
+ */
 void SimpleCommand::cmdPerform() {
     //Make an array for execvp with space for the program name and nullptr at the end.
     const char **givenArgs = new const char* [arguments.size() + 2];
@@ -176,6 +177,7 @@ void SimpleCommand::cmdPerform() {
     //Then execvp() the command given, along with the given arguments.
     execvp(givenArgs[0], (char **) givenArgs);
 }
+
 /* --- LEGACY CODE ------------------------------------------------------------------------------------------------- */
 
 /**

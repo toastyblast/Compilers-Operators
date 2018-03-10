@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include "Sequence.h"
 #include "Pipeline.h"
+#include "ExitCommand.h"
 #include <sys/types.h>
 #include <sys/wait.h>
 void signalHandler( int signum ) {
@@ -34,6 +35,8 @@ void Sequence::execute() {
                 || p->getComands().at(0)->getCommand() == "pwd"
                 || p->getComands().at(0)->getCommand() == "history"){
             p->execute();
+        } else if (p->findCommand("exit") == 1) {
+            throw ExitCommand();
         } else {
             if(p->isAsync()){
                 //If the command is async start it and move on.

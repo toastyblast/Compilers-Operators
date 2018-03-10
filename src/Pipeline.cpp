@@ -79,7 +79,21 @@ void Pipeline::execute() {
             //Go to the next command in the list.
             it++;
         }
+
+        //Because we already fork in sequence, we fork 1 too many times here. To fix this, we need to exit at the end
+        // to remove this leftover child.
+        exit(EXIT_SUCCESS);
     } else {
         perror("For some reason there's 0 or less commands given.");
     }
+}
+
+int const Pipeline::findCommand(string toFind) const {
+    for (SimpleCommand *simpleCommand : commands) {
+        if (simpleCommand->getCommand() == toFind) {
+            return 1;
+        }
+    }
+
+    return 0;
 }

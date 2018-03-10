@@ -30,6 +30,7 @@ class Pipeline {
 
 		void addCommand( SimpleCommand *cmd ) { commands.push_back(cmd); }
         std::vector<SimpleCommand *> getComands() { return commands;}
+		int const findCommand(std::string) const;
 
 		void execute();
 };
