@@ -4,7 +4,7 @@ sequence
     :   pipeline ( seqDelim pipeline )* lastAmpersand=AMPERSAND? EOF
     ;
 
-seqDelim: ( SEMICOLON | AMPERSAND );
+seqDelim: ( SEMICOLON | AMPERSAND | X2AMPERSANDCO | X2LINECO);
 
 pipeline
     :   simpleCommand
@@ -27,6 +27,9 @@ string
 
 SEMICOLON: ';';
 AMPERSAND: '&';
+//CO - controll operator
+X2AMPERSANDCO: '&&';
+X2LINECO: '||';
 PIPE:      '|';
 
 fragment Digit: [0-9];

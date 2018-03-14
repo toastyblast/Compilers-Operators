@@ -26,6 +26,10 @@ antlrcpp::Any CommandVisitor::visitSequence(ShellGrammarParser::SequenceContext 
 			// Could be delimited using ';' or '&'
 			if( ctx->seqDelim(i)->AMPERSAND() )
 				pipeline->setAsync(true);
+			else if( ctx->seqDelim(i)->X2AMPERSANDCO())
+				pipeline->setContinue(true);
+			else if( ctx->seqDelim(i)->X2LINECO())
+				pipeline->setStop(true);
 		} else if( ctx->lastAmpersand != nullptr ) {
 			// If this is the last pipeline, check if user appended a '&'
 			pipeline->setAsync(true);

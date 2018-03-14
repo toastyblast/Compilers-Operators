@@ -1,5 +1,5 @@
 
-// Generated from D:/Prog/Saxion/2.3-Compilers-Operating-Systems/Practical/Shell/Base\ShellGrammar.g4 by ANTLR 4.7
+// Generated from /home/martin/CLionProjects/Compilers-Operators-HELP/ShellGrammar.g4 by ANTLR 4.7
 
 #pragma once
 
@@ -12,8 +12,8 @@
 class  ShellGrammarParser : public antlr4::Parser {
 public:
   enum {
-    SEMICOLON = 1, AMPERSAND = 2, PIPE = 3, REDIRECTFD = 4, REDIRECT = 5, 
-    QUOTEDSTRING = 6, STRING = 7, WS = 8
+    SEMICOLON = 1, AMPERSAND = 2, X2AMPERSANDCO = 3, X2LINECO = 4, PIPE = 5, 
+    REDIRECTFD = 6, REDIRECT = 7, QUOTEDSTRING = 8, STRING = 9, WS = 10
   };
 
   enum {
@@ -50,6 +50,9 @@ public:
     SeqDelimContext* seqDelim(size_t i);
     antlr4::tree::TerminalNode *AMPERSAND();
 
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
     virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
    
   };
@@ -62,6 +65,11 @@ public:
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *SEMICOLON();
     antlr4::tree::TerminalNode *AMPERSAND();
+    antlr4::tree::TerminalNode *X2AMPERSANDCO();
+    antlr4::tree::TerminalNode *X2LINECO();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
 
     virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
    
@@ -78,6 +86,9 @@ public:
     std::vector<antlr4::tree::TerminalNode *> PIPE();
     antlr4::tree::TerminalNode* PIPE(size_t i);
 
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
     virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
    
   };
@@ -93,6 +104,9 @@ public:
     std::vector<IoRedirectContext *> ioRedirect();
     IoRedirectContext* ioRedirect(size_t i);
 
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
     virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
    
   };
@@ -107,6 +121,9 @@ public:
     StringContext *string();
     antlr4::tree::TerminalNode *REDIRECTFD();
 
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
     virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
    
   };
@@ -119,6 +136,9 @@ public:
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *QUOTEDSTRING();
     antlr4::tree::TerminalNode *STRING();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
 
     virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
    
