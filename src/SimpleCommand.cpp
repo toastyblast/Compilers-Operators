@@ -175,7 +175,10 @@ void SimpleCommand::cmdPerform() {
     givenArgs[arguments.size() + 1] = nullptr;
 
     //Then execvp() the command given, along with the given arguments.
-    execvp(givenArgs[0], (char **) givenArgs);
+    if(execvp(givenArgs[0], (char **) givenArgs)== -1){
+        perror("execv");
+        exit(-1);
+    }
 }
 
 /* --- LEGACY CODE ------------------------------------------------------------------------------------------------- */
